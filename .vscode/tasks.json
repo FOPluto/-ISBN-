@@ -1,0 +1,44 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "mkdir",
+            "type": "shell",
+            "command": "mkdir",
+            "args": [
+                "-p",
+                "build"
+            ],
+        },
+        {
+            "label": "cmake",     // 命令的别名
+            "type": "shell",         
+            "command": "cmake",    // 命令
+            "args": [                         // 参数列表
+                ".."
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/build", // 该命令的工作目录
+            },
+            "dependsOn": [   // 该命令执行前应该执行的命令
+                "mkdir" 
+            ]
+        },
+        {
+            "label": "make",
+            "type": "shell",
+            "command": "make",
+            "args": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "options": {
+                "cwd": "${workspaceFolder}/build",
+            },
+            "dependsOn": [
+                "cmake"//make命令执行前先执行cmake命令
+            ]
+        }
+    ]
+}

@@ -1,0 +1,10 @@
+set( CMAKE_BUILD_TYPE "Debug" )
+set(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -Wall -g2 -ggdb")
+set(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3 -Wall")
+add_definitions(-std=c++14) 
+
+cmake_minimum_required(VERSION 2.8)
+project( opencv_home )
+find_package( OpenCV REQUIRED )
+add_executable( opencv_home main.cpp )
+target_link_libraries( opencv_home ${OpenCV_LIBS} )

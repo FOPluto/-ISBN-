@@ -1,0 +1,32 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "C/C++: cmake玩一下",
+            "type": "cppdbg",
+            "request": "launch",
+            // "program": "${workspaceFolder}/build/demo",
+            "program": "${workspaceFolder}/build/${workspaceFolderBasename}", //指定C/C++程序位置
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}", //指定工作目录
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "为 gdb 启用整齐打印",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "将反汇编风格设置为 Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "make", //*****重要一步*****在调试前会先调用make这个task中编译构建的程序
+            "miDebuggerPath": "/bin/gdb"
+        }
+    ]
+}
