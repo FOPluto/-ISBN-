@@ -22,9 +22,9 @@ using namespace std;
 using namespace cv;
 
 
-string test_image_path = "/home/fo_pluto/opencv_home/demo7.jpg";
+string test_image_path = "/home/fo_pluto/opencv_home/demo5.jpg";
 
-
+typedef pair<int, pair<int, int>> PIII;
 
 int main(){
     Mat src_image = imread(test_image_path);
@@ -69,7 +69,7 @@ int main(){
     for(int i = 0;i < lines.size();i++){
         double x_item = lines[i].val[0] - lines[i].val[2];
         double y_item = lines[i].val[1] - lines[i].val[3];
-        if(abs(x_item / y_item) >= 1) continue;
+        // if(abs(x_item / y_item) >= 1) continue;
 
         // 画条线调试一下
         Vec4f hline = lines[i];
@@ -89,7 +89,7 @@ int main(){
     Mat get_temp_mat = getRotationMatrix2D(center, -angle, 1.0);
     Mat rotated_image;
     cv::Size src_sz = threshold_image.size();
-    cv::Size dst_sz(src_sz.width, src_sz.height);
+    cv::Size dst_sz(src_sz.width * 1.2, src_sz.height);
     // 对输出的图像处理
     warpAffine(threshold_image, rotated_image, get_temp_mat, dst_sz);
     // 对原始图像处理，方便调试
@@ -130,19 +130,45 @@ int main(){
     // 对输入图像处理，方便调试
     warpAffine(src_copy_image, src_copy_image, temp_for_x, dst_sz);
 
+    vector<int> rows_element;
+    vector<Point> points;
     
-    // 做出直方图
-    
-    
-    
+    for(int i = 0;i < res_image.rows;i++){
+        int sum = 0;
+        uchar* ff = res_image.ptr(i);
+        for(int j = 0;j < res_image.cols;j++){
+            if(*(ff + j) >= 100) sum ++;
+        }
+        rows_element.push_back(sum);
+        points.push_back(Point(sum / 2, i));
+        if(i) line(src_copy_image, points[i - 1], points[i], Scalar(255, 0, 0), 2);
+    }
+
+    int idx = -1;
+    vector<PIII> ans;
+    for(int i = 0;i < rows_element.size() / 2;i++){
+        if(rows_element[i] >= 50 && rows_element[i] <= 299){
+            PIII item = {++ idx, {i, 0}};
+            ans.push_back(item);
+            int idx = i;
+            while(rows_element[idx] >= 50) idx ++;
+            ans[item.first].second.second = idx;
+            i = ++ idx;
+        }
+    }
+
     // 调试代码，可以改宏定义
+    int _begin = ans[ans.size() - 2].second.first, _end = ans[ans.size() - 2].second.second;
+
+
+    Mat ROI_image = res_image(Range(_begin, _end), Range::all());
 
     #ifdef DEBUG_LINE // 调试直线检测
     imshow("lines_image", src_copy_image);
     #endif
 
     #ifdef DEBUG // 调试图像
-    imshow("res_image", res_image); // 最后输出的图片为res_image
+    imshow("res_ROI_image", ROI_image); // 最后输出的图片为res_image
     // imshow("res_image", rotated_image);
     #endif
     
