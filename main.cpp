@@ -22,7 +22,7 @@ using namespace std;
 using namespace cv;
 
 
-string test_image_path = "/home/fo_pluto/opencv_home/demo.jpg";
+string test_image_path = "/home/fo_pluto/opencv_home/demo5.jpg";
 
 typedef pair<int, pair<int, int>> PIII;
 
@@ -255,9 +255,12 @@ int main(){
     for(int i = 0;i < num_position.size();i++){
         Mat item_image = ROI_image(Range::all(), Range(num_position[i].first, num_position[i].second));
         num_ROI_rect.push_back(item_image);
+
+        #ifdef DEBUG
         string str = "images(";
         imshow(str + to_string(i) + ")", item_image);
         waitKey(0);
+        #endif
     }
 
     // 调试代码，可以改宏定义
@@ -269,8 +272,8 @@ int main(){
 
     #ifdef DEBUG // 调试图像
     // imshow("res_ROI_image", ROI_image); // 最后输出的图片为res_image
-    #endif
     waitKey(0);
+    #endif
 
     return 0;
 }
