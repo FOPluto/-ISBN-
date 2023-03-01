@@ -257,6 +257,7 @@ int main(){
         num_ROI_rect.push_back(item_image);
         string str = "images(";
         imshow(str + to_string(i) + ")", item_image);
+        waitKey(0);
     }
 
     // 调试代码，可以改宏定义
