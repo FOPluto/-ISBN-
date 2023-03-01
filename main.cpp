@@ -41,7 +41,7 @@ int main(){
     cvtColor(src_image, gray_image, COLOR_RGB2GRAY);
 
     Mat erode_dilate_image;
-    Mat element = getStructuringElement(MORPH_RECT, Size(3, 3));
+    Mat element = getStructuringElement(MORPH_RECT, Size(1, 1));
     erode(gray_image, erode_dilate_image, element);
 
     // 使用大津法进行二值化处理
