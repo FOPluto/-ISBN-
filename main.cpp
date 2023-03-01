@@ -22,7 +22,7 @@ using namespace std;
 using namespace cv;
 
 
-string test_image_path = "/home/fo_pluto/opencv_home/demo5.jpg";
+string test_image_path = "/home/fo_pluto/opencv_home/demo7.jpg";
 
 
 
@@ -101,7 +101,7 @@ int main(){
     Mat canny_rotated_image;
     lines.clear();
     Canny(rotated_image, canny_rotated_image, 50, 150, 3, false);
-    HoughLinesP(canny_rotated_image, lines, 2, CV_PI / 180, 60, 50, 100);
+    HoughLinesP(canny_rotated_image, lines, 2, CV_PI / 180, 60, 50, 80);
     printf("canny_image_lines_size:  %d\n", lines.size());
     
     angle = 0; num = 0;
