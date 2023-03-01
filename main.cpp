@@ -101,7 +101,7 @@ int main(){
     Mat canny_rotated_image;
     lines.clear();
     Canny(rotated_image, canny_rotated_image, 50, 150, 3, false);
-    HoughLinesP(canny_rotated_image, lines, 2, CV_PI / 180, 60, 50, 80);
+    HoughLinesP(canny_rotated_image, lines, 2, CV_PI / 180, 60, 50, 74);
     printf("canny_image_lines_size:  %d\n", lines.size());
     
     angle = 0; num = 0;
@@ -109,7 +109,7 @@ int main(){
         double x_item = lines[i].val[0] - lines[i].val[2];
         double y_item = lines[i].val[1] - lines[i].val[3];
         if(abs(y_item / x_item) >= 1) continue;
-        if(lines[i].val[1] > canny_rotated_image.rows / 2 && lines[i].val[2] > canny_rotated_image.rows / 2) continue;
+        if(lines[i].val[1] > canny_rotated_image.rows / 2 && lines[i].val[3] > canny_rotated_image.rows / 2) continue;
 
         // 画条线调试一下
         Vec4f hline = lines[i];
