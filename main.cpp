@@ -22,9 +22,73 @@ using namespace std;
 using namespace cv;
 
 
-string test_image_path = "/home/fo_pluto/opencv_home/demo5.jpg";
+string test_image_path = "/home/fo_pluto/opencv_home/demo.jpg";
 
 typedef pair<int, pair<int, int>> PIII;
+
+typedef pair<int, int> PII;
+
+void FloodFill(Mat& pic)//水漫操作
+{
+	int dx[] = { -1,0,1,-1,1,-1,0,1 };
+	int dy[] = { 1,1,1,0,0,-1,-1,-1 };
+	queue<PII> q;
+	for (int i = 0; i < pic.cols; i++)//上
+		for (int j = 0; j < 1; j++)
+			if (pic.at<uchar>(j, i) != 0) q.push({ j,i });
+	for (int i = 0; i < pic.cols; i++)//下
+		for (int j = pic.rows - 1; j >= pic.rows - 1; j--)
+			if (pic.at<uchar>(j, i) != 0) q.push({ j,i });
+	for (int i = 0; i < pic.rows; i++)//左
+		for (int j = 0; j < 1; j++)
+			if (pic.at<uchar>(i, j) != 0) q.push({ i,j });
+	for (int i = 0; i < pic.rows; i++)//右
+			for (int j = pic.cols - 1; j >= pic.cols - 1; j--)
+				if (pic.at<uchar>(i, j) != 0) q.push({ i,j });
+	while (!q.empty())
+	{
+		PII t = q.front(); q.pop();
+		int x = t.first, y = t.second;
+		for (int i = 0; i < 8; i++)
+		{
+			int nx = x + dx[i];
+			int ny = y + dy[i];
+			if (nx < 0 || ny < 0 || nx >= pic.rows || ny >= pic.cols) continue;
+			if (pic.at<uchar>(nx, ny) != 0)
+			{
+				pic.at<uchar>(nx, ny) = 0;
+				q.push({ nx,ny });
+			}
+		}
+	}
+}
+
+void ImgRectify(Mat& pic, Mat& BinaryFlat, Mat& Img, Mat& ImgFlat)//图像矫正, 明天再看看
+{
+	Mat pic_edge;
+	Sobel(pic, pic_edge, -1, 0, 1, 5);
+	//霍夫直线检测（第5个参数是阈值，阈值越大，检测精度越高）
+	vector<Vec2f> Line;
+	HoughLines(pic_edge, Line, 1, CV_PI / 180, 180, 0, 0);
+	//计算偏转角度
+	double Angle = 0;
+	int LineCnt = 0;
+	for (int i = 0; i < Line.size(); i++)
+	{
+		if (Line[i][1] < 1.2 || Line[i][1]>1.8) continue;
+		Angle += Line[i][1];
+		LineCnt++;
+	}
+	if (LineCnt == 0) Angle = CV_PI / 2;
+	else Angle /= LineCnt;
+	Angle = 180 * Angle / CV_PI - 90;
+	Mat pic_tmp = getRotationMatrix2D(Point(pic.cols / 2, pic.rows / 2), Angle, 1);
+	warpAffine(pic, BinaryFlat, pic_tmp, pic.size());
+	warpAffine(Img, ImgFlat, pic_tmp, Img.size());
+	FloodFill(BinaryFlat);
+}
+
+
 
 int main(){
     Mat src_image = imread(test_image_path);
@@ -130,6 +194,8 @@ int main(){
     // 对输入图像处理，方便调试
     warpAffine(src_copy_image, src_copy_image, temp_for_x, dst_sz);
 
+    FloodFill(res_image);
+
     vector<int> rows_element;
     vector<Point> points;
     
@@ -147,7 +213,7 @@ int main(){
     int idx = -1;
     vector<PIII> ans;
     for(int i = 0;i < rows_element.size() / 2;i++){
-        if(rows_element[i] >= 50 && rows_element[i] <= 299){
+        if(rows_element[i] >= 70 && rows_element[i] <= 299){
             PIII item = {++ idx, {i, 0}};
             ans.push_back(item);
             int idx = i;
@@ -157,21 +223,52 @@ int main(){
         }
     }
 
-    // 调试代码，可以改宏定义
     int _begin = ans[ans.size() - 2].second.first, _end = ans[ans.size() - 2].second.second;
 
-
+    // 提取兴趣框
     Mat ROI_image = res_image(Range(_begin, _end), Range::all());
+
+    vector<int> num_area;
+
+    for(int i = 0;i < ROI_image.cols;i++){
+        int num = 0;
+        for(int j = 0;j < ROI_image.rows;j++){
+            uchar * ch = ROI_image.ptr(j);
+            if(*(ch + i) >= 60) num ++;
+        }
+        num_area.push_back(num);
+    }
+
+    vector<PII> num_position;
+    vector<Mat> num_ROI_rect;
+    for(int i = 0;i < num_area.size();i++){
+        if(num_area[i]){
+            PII item = {i - 1, 0};
+            int idx = i;
+            while(num_area[idx]) idx ++;
+            item.second = idx;
+            i = idx;
+            num_position.push_back(item);
+        }
+    }
+
+    for(int i = 0;i < num_position.size();i++){
+        Mat item_image = ROI_image(Range::all(), Range(num_position[i].first, num_position[i].second));
+        num_ROI_rect.push_back(item_image);
+        string str = "images(";
+        imshow(str + to_string(i) + ")", item_image);
+    }
+
+    // 调试代码，可以改宏定义
+    
 
     #ifdef DEBUG_LINE // 调试直线检测
     imshow("lines_image", src_copy_image);
     #endif
 
     #ifdef DEBUG // 调试图像
-    imshow("res_ROI_image", ROI_image); // 最后输出的图片为res_image
-    // imshow("res_image", rotated_image);
+    // imshow("res_ROI_image", ROI_image); // 最后输出的图片为res_image
     #endif
-    
     waitKey(0);
 
     return 0;
