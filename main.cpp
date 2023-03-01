@@ -44,12 +44,13 @@ int main(){
     Mat element = getStructuringElement(MORPH_RECT, Size(1, 1));
     erode(gray_image, erode_dilate_image, element);
 
+    // 高斯滤波处理
+    Mat gaussian_image;
+    GaussianBlur(erode_dilate_image, gaussian_image, Size(1, 1), 0, 0, BORDER_DEFAULT);
+
     // 使用大津法进行二值化处理
     Mat threshold_image;
-    threshold(erode_dilate_image, threshold_image, 0, 255, THRESH_BINARY_INV | THRESH_OTSU);
-
-    // 高斯滤波处理
-    GaussianBlur(threshold_image, threshold_image, Size(3, 3), 0, 0, BORDER_DEFAULT);
+    threshold(gaussian_image, threshold_image, 0, 255, THRESH_BINARY_INV | THRESH_OTSU);
 
     // canny边缘检测
     Mat canny_image;
@@ -131,7 +132,7 @@ int main(){
 
     
     
-    
+    // 做出直方图
     
     
     // 调试代码，可以改宏定义
