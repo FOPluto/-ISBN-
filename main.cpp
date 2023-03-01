@@ -22,7 +22,7 @@ using namespace std;
 using namespace cv;
 
 
-string test_image_path = "/home/fo_pluto/opencv_home/demo2.jpg";
+string test_image_path = "/home/fo_pluto/opencv_home/demo5.jpg";
 
 
 
