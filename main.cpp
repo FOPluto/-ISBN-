@@ -131,8 +131,8 @@ int main(){
     warpAffine(src_copy_image, src_copy_image, temp_for_x, dst_sz);
 
     
-    
     // 做出直方图
+    
     
     
     // 调试代码，可以改宏定义
