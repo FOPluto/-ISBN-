@@ -22,7 +22,7 @@ using namespace std;
 using namespace cv;
 
 
-string test_image_path = "/home/fo_pluto/opencv_home/demo6.jpg";
+string test_image_path = "/home/fo_pluto/opencv_home/demo8.JPG";
 
 typedef pair<int, pair<int, int>> PIII;
 
@@ -35,14 +35,16 @@ bool Comp(pair<int, int>a, pair<int, int>b) {
 }
 double CalcImg(Mat inputImg) {
     double nums = 0;
+    int temp = 0;
     for (int i = 0; i < inputImg.rows; i++) {
         for (int j = 0; j < inputImg.cols; j++) {
             if (inputImg.at<uchar>(i, j) != 0) {
                 nums += inputImg.at<uchar>(i, j);
+                temp ++;
             }
         }
     }
-    return nums / inputImg.cols * inputImg.rows;
+    return nums / (inputImg.rows * inputImg.cols);
 }
 //模板匹配的主要函数
 char CheckImg(Mat inputImg) {
