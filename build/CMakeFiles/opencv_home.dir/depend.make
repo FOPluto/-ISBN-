@@ -6,11 +6,9 @@ CMakeFiles/opencv_home.dir/detect.cpp.o: ../detect.h
 
 CMakeFiles/opencv_home.dir/main.cpp.o: ../detect.h
 CMakeFiles/opencv_home.dir/main.cpp.o: ../main.cpp
+CMakeFiles/opencv_home.dir/main.cpp.o: ../testSolution.h
 
 CMakeFiles/opencv_home.dir/testSolution.cpp.o: ../detect.h
 CMakeFiles/opencv_home.dir/testSolution.cpp.o: ../testSolution.cpp
 CMakeFiles/opencv_home.dir/testSolution.cpp.o: ../testSolution.h
-
-CMakeFiles/opencv_home.dir/test_detect.cpp.o: ../detect.h
-CMakeFiles/opencv_home.dir/test_detect.cpp.o: ../test_detect.cpp
 

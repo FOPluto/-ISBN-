@@ -6,5 +6,5 @@ CXX_FLAGS =  -O0 -Wall -g2 -ggdb   -std=c++14
 
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I/home/fo_pluto/opencv_home/include/detect.h -isystem /usr/local/include/opencv 
+CXX_INCLUDES = -I/home/fo_pluto/opencv_home -isystem /usr/local/include/opencv 
 

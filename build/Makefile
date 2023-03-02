@@ -204,33 +204,6 @@ testSolution.cpp.s:
 	$(MAKE) -f CMakeFiles/opencv_home.dir/build.make CMakeFiles/opencv_home.dir/testSolution.cpp.s
 .PHONY : testSolution.cpp.s
 
-test_detect.o: test_detect.cpp.o
-
-.PHONY : test_detect.o
-
-# target to build an object file
-test_detect.cpp.o:
-	$(MAKE) -f CMakeFiles/opencv_home.dir/build.make CMakeFiles/opencv_home.dir/test_detect.cpp.o
-.PHONY : test_detect.cpp.o
-
-test_detect.i: test_detect.cpp.i
-
-.PHONY : test_detect.i
-
-# target to preprocess a source file
-test_detect.cpp.i:
-	$(MAKE) -f CMakeFiles/opencv_home.dir/build.make CMakeFiles/opencv_home.dir/test_detect.cpp.i
-.PHONY : test_detect.cpp.i
-
-test_detect.s: test_detect.cpp.s
-
-.PHONY : test_detect.s
-
-# target to generate assembly for a file
-test_detect.cpp.s:
-	$(MAKE) -f CMakeFiles/opencv_home.dir/build.make CMakeFiles/opencv_home.dir/test_detect.cpp.s
-.PHONY : test_detect.cpp.s
-
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -249,9 +222,6 @@ help:
 	@echo "... testSolution.o"
 	@echo "... testSolution.i"
 	@echo "... testSolution.s"
-	@echo "... test_detect.o"
-	@echo "... test_detect.i"
-	@echo "... test_detect.s"
 .PHONY : help
 
 

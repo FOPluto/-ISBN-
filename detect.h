@@ -23,22 +23,11 @@ using namespace cv;
 // 宏定义：如果不注释就是打开对应DEBUG模式
 #define DEBUG
 
-#ifdef DEBUG
-
-// 设置模式
-
-
-
-
-#endif
-
 typedef pair<int, pair<int, int>> PIII;
 
 typedef pair<int, int> PII;
 
 
-// pair比较函数
-bool Comp(pair<int, double>a, pair<int, double>b) {return a.second < b.second;}
 
 class detectSolution{
     private:
@@ -87,6 +76,9 @@ class detectSolution{
     void find_ROI();
 
     public:
+
+    // 构造函数
+    detectSolution(string sample_path) {this->sampleImgPath = sample_path;}
 
     // 获取结果
     string get_res();

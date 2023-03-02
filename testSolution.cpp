@@ -7,7 +7,7 @@ pair<double, double> testSolution::test(string test_path){
     int c_num = 0, c_p_num = 0;  //字符
     int s_num = 0, s_p_num = 0;  //字符串
     for(int i = 0;i < testImgFN.size();i++){
-        detectSolution* detect_item = new detectSolution();
+        detectSolution* detect_item = new detectSolution(this->sample_path);
         string testItem = testImgFN[i];
         detect_item->fit(testItem);
         string ac = "";
@@ -23,6 +23,8 @@ pair<double, double> testSolution::test(string test_path){
             if(ans[j] == testItem[j]) c_p_num ++;
         }
         c_num += testItem.length();
+        cout << detect_item->get_res() << endl;
+        delete detect_item;
     }
     return {(double)c_p_num / c_num, (double)s_p_num / s_num};
 }

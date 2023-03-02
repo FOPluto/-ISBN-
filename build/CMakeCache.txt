@@ -213,22 +213,10 @@ CMAKE_VERBOSE_MAKEFILE:BOOL=FALSE
 OpenCV_DIR:PATH=/usr/local/share/OpenCV
 
 //Value Computed by CMake
-demo_BINARY_DIR:STATIC=/home/fo_pluto/opencv_home/build
-
-//Value Computed by CMake
-demo_SOURCE_DIR:STATIC=/home/fo_pluto/opencv_home
-
-//Value Computed by CMake
 opencv_home_BINARY_DIR:STATIC=/home/fo_pluto/opencv_home/build
 
 //Value Computed by CMake
 opencv_home_SOURCE_DIR:STATIC=/home/fo_pluto/opencv_home
-
-//Value Computed by CMake
-test_BINARY_DIR:STATIC=/home/fo_pluto/opencv_home/build
-
-//Value Computed by CMake
-test_SOURCE_DIR:STATIC=/home/fo_pluto/opencv_home
 
 
 ########################

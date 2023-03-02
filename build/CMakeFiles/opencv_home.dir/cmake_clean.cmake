@@ -2,7 +2,6 @@ file(REMOVE_RECURSE
   "CMakeFiles/opencv_home.dir/detect.cpp.o"
   "CMakeFiles/opencv_home.dir/main.cpp.o"
   "CMakeFiles/opencv_home.dir/testSolution.cpp.o"
-  "CMakeFiles/opencv_home.dir/test_detect.cpp.o"
   "opencv_home"
   "opencv_home.pdb"
 )
