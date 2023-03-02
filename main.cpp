@@ -4,9 +4,9 @@
 */
 
 // debug模式
-// #define DEBUG
-// #define DEBUG_LINE
-// #define DEBUG_GRAY_GRAGH
+#define DEBUG
+#define DEBUG_LINE
+#define DEBUG_GRAY_GRAGH
 
 #include <opencv2/opencv.hpp>
 #include <opencv2/aruco.hpp>
@@ -22,7 +22,7 @@ using namespace std;
 using namespace cv;
 
 
-string test_image_path = "/home/fo_pluto/opencv_home/demo8.JPG";
+string test_image_path = "/home/fo_pluto/opencv_home/demo11.png";
 
 typedef pair<int, pair<int, int>> PIII;
 
@@ -134,13 +134,8 @@ void FloodFill(Mat& pic)//水漫操作
 }
 
 
-int main(){
-    Mat src_image = imread(test_image_path);
-
-    double width = 700;
-    double height = width * (double)src_image.rows / src_image.cols;
-    resize(src_image, src_image, cv::Size(width, height));
-
+// 预处理函数
+Mat get_res_image(Mat& src_image, int type){
     Mat src_copy_image;
     src_image.copyTo(src_copy_image);
 
@@ -158,7 +153,7 @@ int main(){
 
     // 使用大津法进行二值化处理
     Mat threshold_image;
-    threshold(gaussian_image, threshold_image, 0, 255, THRESH_BINARY_INV | THRESH_OTSU);
+    threshold(gaussian_image, threshold_image, 0, 255, type | THRESH_OTSU);
 
     // canny边缘检测
     Mat canny_image;
@@ -239,6 +234,27 @@ int main(){
     warpAffine(src_copy_image, src_copy_image, temp_for_x, dst_sz);
 
     FloodFill(res_image);
+    return res_image;
+}
+
+
+int main(){
+    Mat src_image = imread(test_image_path);
+    Mat src_copy_image;
+    src_image.copyTo(src_image);
+
+    Mat res_image = get_res_image(src_image, THRESH_BINARY_INV);
+
+    double _sum = CalcImg(res_image);
+
+    cout << "average_: " << _sum << endl;
+
+    if(_sum <= 40) res_image = get_res_image(src_image, THRESH_BINARY);
+
+
+    double width = 700;
+    double height = width * (double)src_image.rows / src_image.cols;
+    resize(src_image, src_image, cv::Size(width, height));
 
     vector<int> rows_element;
     vector<Point> points;
@@ -251,8 +267,18 @@ int main(){
         }
         rows_element.push_back(sum);
         points.push_back(Point(sum / 2, i));
-        if(i) line(src_copy_image, points[i - 1], points[i], Scalar(255, 0, 0), 2);
+        // if(i) line(src_copy_image, points[i - 1], points[i], Scalar(255, 0, 0), 2);
     }
+
+
+    // 调试代码，可以改宏定义
+
+    #ifdef DEBUG // 调试图像
+    imshow("res_image", res_image);
+    waitKey(0);
+    #endif
+
+
 
     int idx = -1;
     vector<PIII> ans;
@@ -271,6 +297,8 @@ int main(){
 
     // 提取兴趣框
     Mat ROI_image = res_image(Range(_begin, _end), Range::all());
+
+
 
     vector<int> num_area;
 
@@ -318,17 +346,6 @@ int main(){
     }
 
     cout << res_str << endl;
-
-    // 调试代码，可以改宏定义
-    #ifdef DEBUG_LINE // 调试直线检测
-    imshow("lines_image", src_copy_image);
-    #endif
-
-    #ifdef DEBUG // 调试图像
-    imshow("res_image", res_image);
-    imshow("res_ROI_image", ROI_image); // 最后输出的图片为res_image
-    waitKey(0);
-    #endif
 
     return 0;
 }
