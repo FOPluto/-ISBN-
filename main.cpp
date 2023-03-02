@@ -4,8 +4,8 @@
 */
 
 // debug模式
-#define DEBUG
-#define DEBUG_LINE
+// #define DEBUG
+// #define DEBUG_LINE
 // #define DEBUG_GRAY_GRAGH
 
 #include <opencv2/opencv.hpp>
@@ -22,7 +22,7 @@ using namespace std;
 using namespace cv;
 
 
-string test_image_path = "/home/fo_pluto/opencv_home/demo3.jpg";
+string test_image_path = "/home/fo_pluto/opencv_home/demo6.jpg";
 
 typedef pair<int, pair<int, int>> PIII;
 
@@ -33,8 +33,8 @@ typedef pair<int, int> PII;
 bool Comp(pair<int, int>a, pair<int, int>b) {
     return a.second < b.second;
 }
-int CalcImg(Mat inputImg) {
-    int nums = 0;
+double CalcImg(Mat inputImg) {
+    double nums = 0;
     for (int i = 0; i < inputImg.rows; i++) {
         for (int j = 0; j < inputImg.cols; j++) {
             if (inputImg.at<uchar>(i, j) != 0) {
@@ -42,7 +42,7 @@ int CalcImg(Mat inputImg) {
             }
         }
     }
-    return nums;
+    return nums / inputImg.cols * inputImg.rows;
 }
 //模板匹配的主要函数
 char CheckImg(Mat inputImg) {
@@ -52,18 +52,20 @@ char CheckImg(Mat inputImg) {
     glob(sampleImgPath, sampleImgFN, false);
     int sampleImgNums = sampleImgFN.size();
 
-    pair<int, int>*nums = new pair<int, int>[sampleImgNums];//first 记录模板的索引号，second 记录两图像之差
+    pair<int, double>*nums = new pair<int, double>[sampleImgNums];//first 记录模板的索引号，second 记录两图像之差
     for (int i = 0; i < sampleImgNums; i++) {
         nums[i].first = i;
         Mat numImg = imread(sampleImgFN[i], 0);
         Mat delImg;
+        resize(inputImg, inputImg, Size(numImg.cols, numImg.rows));
         absdiff(numImg, inputImg, delImg);
+
         nums[i].second = CalcImg(delImg);
     }
 
     sort(nums, nums + sampleImgNums, Comp);//选择差值最小的模板
 
-    int index = nums[0].first / 2;
+    int index = nums[0].first / 3;
     switch (index) {
     case 0:
     case 1:
@@ -77,13 +79,13 @@ char CheckImg(Mat inputImg) {
     case 9:
         return index + '0';
     case 10:
-        return 'I';
-    case 11:
-        return 'S';
-    case 12:
         return 'B';
-    case 13:
+    case 11:
+        return 'I';
+    case 12:
         return 'N';
+    case 13:
+        return 'S';
     case 14:
         return 'X';
     case 15:
@@ -293,22 +295,27 @@ int main(){
     }
 
     vector<char> ans_;
+    string res_str = "ISBN ";
+    int idx_image = 0;
 
     for(int i = 0;i < num_position.size();i++){
         Mat item_image = ROI_image(Range::all(), Range(num_position[i].first, num_position[i].second));
-        resize(item_image, item_image, Size(32, 32 * item_image.rows / item_image.cols));
         num_ROI_rect.push_back(item_image);
-        // imwrite("datasets/" + to_string(idx_image ++) + ".jpg", item_image);
-
-        #ifdef DEBUG_GRAY_GRAGH
-        string str = "images(";
-        imshow(str + to_string(i) + ")", item_image);
-        waitKey(0);
-        #endif
+        char ch = CheckImg(item_image);
+        ans_.push_back(ch);
+        //imwrite("demo/" + to_string(idx_image ++) + ".jpg", item_image); // 存储自制模板
     }
-    
-    puts("");
-    
+    bool flag = false;
+
+    for(int i = 0;i < ans_.size();i++){
+        if(flag){
+            res_str += ans_[i];
+        }else if(ans_[i] == 'N'){
+            flag = true;
+        }
+    }
+
+    cout << res_str << endl;
 
     // 调试代码，可以改宏定义
     #ifdef DEBUG_LINE // 调试直线检测
