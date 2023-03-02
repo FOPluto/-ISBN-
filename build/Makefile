@@ -123,6 +123,33 @@ opencv_home/fast:
 	$(MAKE) -f CMakeFiles/opencv_home.dir/build.make CMakeFiles/opencv_home.dir/build
 .PHONY : opencv_home/fast
 
+detect.o: detect.cpp.o
+
+.PHONY : detect.o
+
+# target to build an object file
+detect.cpp.o:
+	$(MAKE) -f CMakeFiles/opencv_home.dir/build.make CMakeFiles/opencv_home.dir/detect.cpp.o
+.PHONY : detect.cpp.o
+
+detect.i: detect.cpp.i
+
+.PHONY : detect.i
+
+# target to preprocess a source file
+detect.cpp.i:
+	$(MAKE) -f CMakeFiles/opencv_home.dir/build.make CMakeFiles/opencv_home.dir/detect.cpp.i
+.PHONY : detect.cpp.i
+
+detect.s: detect.cpp.s
+
+.PHONY : detect.s
+
+# target to generate assembly for a file
+detect.cpp.s:
+	$(MAKE) -f CMakeFiles/opencv_home.dir/build.make CMakeFiles/opencv_home.dir/detect.cpp.s
+.PHONY : detect.cpp.s
+
 main.o: main.cpp.o
 
 .PHONY : main.o
@@ -150,6 +177,60 @@ main.cpp.s:
 	$(MAKE) -f CMakeFiles/opencv_home.dir/build.make CMakeFiles/opencv_home.dir/main.cpp.s
 .PHONY : main.cpp.s
 
+testSolution.o: testSolution.cpp.o
+
+.PHONY : testSolution.o
+
+# target to build an object file
+testSolution.cpp.o:
+	$(MAKE) -f CMakeFiles/opencv_home.dir/build.make CMakeFiles/opencv_home.dir/testSolution.cpp.o
+.PHONY : testSolution.cpp.o
+
+testSolution.i: testSolution.cpp.i
+
+.PHONY : testSolution.i
+
+# target to preprocess a source file
+testSolution.cpp.i:
+	$(MAKE) -f CMakeFiles/opencv_home.dir/build.make CMakeFiles/opencv_home.dir/testSolution.cpp.i
+.PHONY : testSolution.cpp.i
+
+testSolution.s: testSolution.cpp.s
+
+.PHONY : testSolution.s
+
+# target to generate assembly for a file
+testSolution.cpp.s:
+	$(MAKE) -f CMakeFiles/opencv_home.dir/build.make CMakeFiles/opencv_home.dir/testSolution.cpp.s
+.PHONY : testSolution.cpp.s
+
+test_detect.o: test_detect.cpp.o
+
+.PHONY : test_detect.o
+
+# target to build an object file
+test_detect.cpp.o:
+	$(MAKE) -f CMakeFiles/opencv_home.dir/build.make CMakeFiles/opencv_home.dir/test_detect.cpp.o
+.PHONY : test_detect.cpp.o
+
+test_detect.i: test_detect.cpp.i
+
+.PHONY : test_detect.i
+
+# target to preprocess a source file
+test_detect.cpp.i:
+	$(MAKE) -f CMakeFiles/opencv_home.dir/build.make CMakeFiles/opencv_home.dir/test_detect.cpp.i
+.PHONY : test_detect.cpp.i
+
+test_detect.s: test_detect.cpp.s
+
+.PHONY : test_detect.s
+
+# target to generate assembly for a file
+test_detect.cpp.s:
+	$(MAKE) -f CMakeFiles/opencv_home.dir/build.make CMakeFiles/opencv_home.dir/test_detect.cpp.s
+.PHONY : test_detect.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -159,9 +240,18 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
 	@echo "... opencv_home"
+	@echo "... detect.o"
+	@echo "... detect.i"
+	@echo "... detect.s"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"
+	@echo "... testSolution.o"
+	@echo "... testSolution.i"
+	@echo "... testSolution.s"
+	@echo "... test_detect.o"
+	@echo "... test_detect.i"
+	@echo "... test_detect.s"
 .PHONY : help
 
 

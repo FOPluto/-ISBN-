@@ -6,7 +6,11 @@
 
 #IncludeRegexTransform: 
 
-/home/fo_pluto/opencv_home/main.cpp
+/home/fo_pluto/opencv_home/detect.cpp
+detect.h
+/home/fo_pluto/opencv_home/detect.h
+
+/home/fo_pluto/opencv_home/detect.h
 opencv2/opencv.hpp
 -
 opencv2/aruco.hpp
@@ -25,4 +29,20 @@ algorithm
 -
 cmath
 -
+
+/home/fo_pluto/opencv_home/main.cpp
+detect.h
+/home/fo_pluto/opencv_home/detect.h
+
+/home/fo_pluto/opencv_home/testSolution.cpp
+testSolution.h
+/home/fo_pluto/opencv_home/testSolution.h
+
+/home/fo_pluto/opencv_home/testSolution.h
+detect.h
+/home/fo_pluto/opencv_home/detect.h
+
+/home/fo_pluto/opencv_home/test_detect.cpp
+detect.h
+/home/fo_pluto/opencv_home/detect.h
 

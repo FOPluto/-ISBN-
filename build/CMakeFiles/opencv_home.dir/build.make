@@ -70,14 +70,59 @@ CMakeFiles/opencv_home.dir/main.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/opencv_home.dir/main.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fo_pluto/opencv_home/main.cpp -o CMakeFiles/opencv_home.dir/main.cpp.s
 
+CMakeFiles/opencv_home.dir/test_detect.cpp.o: CMakeFiles/opencv_home.dir/flags.make
+CMakeFiles/opencv_home.dir/test_detect.cpp.o: ../test_detect.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/fo_pluto/opencv_home/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/opencv_home.dir/test_detect.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/opencv_home.dir/test_detect.cpp.o -c /home/fo_pluto/opencv_home/test_detect.cpp
+
+CMakeFiles/opencv_home.dir/test_detect.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/opencv_home.dir/test_detect.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fo_pluto/opencv_home/test_detect.cpp > CMakeFiles/opencv_home.dir/test_detect.cpp.i
+
+CMakeFiles/opencv_home.dir/test_detect.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/opencv_home.dir/test_detect.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fo_pluto/opencv_home/test_detect.cpp -o CMakeFiles/opencv_home.dir/test_detect.cpp.s
+
+CMakeFiles/opencv_home.dir/testSolution.cpp.o: CMakeFiles/opencv_home.dir/flags.make
+CMakeFiles/opencv_home.dir/testSolution.cpp.o: ../testSolution.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/fo_pluto/opencv_home/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/opencv_home.dir/testSolution.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/opencv_home.dir/testSolution.cpp.o -c /home/fo_pluto/opencv_home/testSolution.cpp
+
+CMakeFiles/opencv_home.dir/testSolution.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/opencv_home.dir/testSolution.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fo_pluto/opencv_home/testSolution.cpp > CMakeFiles/opencv_home.dir/testSolution.cpp.i
+
+CMakeFiles/opencv_home.dir/testSolution.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/opencv_home.dir/testSolution.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fo_pluto/opencv_home/testSolution.cpp -o CMakeFiles/opencv_home.dir/testSolution.cpp.s
+
+CMakeFiles/opencv_home.dir/detect.cpp.o: CMakeFiles/opencv_home.dir/flags.make
+CMakeFiles/opencv_home.dir/detect.cpp.o: ../detect.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/fo_pluto/opencv_home/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/opencv_home.dir/detect.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/opencv_home.dir/detect.cpp.o -c /home/fo_pluto/opencv_home/detect.cpp
+
+CMakeFiles/opencv_home.dir/detect.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/opencv_home.dir/detect.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fo_pluto/opencv_home/detect.cpp > CMakeFiles/opencv_home.dir/detect.cpp.i
+
+CMakeFiles/opencv_home.dir/detect.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/opencv_home.dir/detect.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fo_pluto/opencv_home/detect.cpp -o CMakeFiles/opencv_home.dir/detect.cpp.s
+
 # Object files for target opencv_home
 opencv_home_OBJECTS = \
-"CMakeFiles/opencv_home.dir/main.cpp.o"
+"CMakeFiles/opencv_home.dir/main.cpp.o" \
+"CMakeFiles/opencv_home.dir/test_detect.cpp.o" \
+"CMakeFiles/opencv_home.dir/testSolution.cpp.o" \
+"CMakeFiles/opencv_home.dir/detect.cpp.o"
 
 # External object files for target opencv_home
 opencv_home_EXTERNAL_OBJECTS =
 
 opencv_home: CMakeFiles/opencv_home.dir/main.cpp.o
+opencv_home: CMakeFiles/opencv_home.dir/test_detect.cpp.o
+opencv_home: CMakeFiles/opencv_home.dir/testSolution.cpp.o
+opencv_home: CMakeFiles/opencv_home.dir/detect.cpp.o
 opencv_home: CMakeFiles/opencv_home.dir/build.make
 opencv_home: /usr/local/lib/libopencv_shape.so.3.4.9
 opencv_home: /usr/local/lib/libopencv_stitching.so.3.4.9
@@ -124,7 +169,7 @@ opencv_home: /usr/local/lib/libopencv_photo.so.3.4.9
 opencv_home: /usr/local/lib/libopencv_imgproc.so.3.4.9
 opencv_home: /usr/local/lib/libopencv_core.so.3.4.9
 opencv_home: CMakeFiles/opencv_home.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/fo_pluto/opencv_home/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable opencv_home"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/fo_pluto/opencv_home/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Linking CXX executable opencv_home"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/opencv_home.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
