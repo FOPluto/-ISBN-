@@ -6,7 +6,7 @@
 // debug模式
 #define DEBUG
 #define DEBUG_LINE
-#define DEBUG_GRAY_GRAGH
+// #define DEBUG_GRAY_GRAGH
 
 #include <opencv2/opencv.hpp>
 #include <opencv2/aruco.hpp>
@@ -22,11 +22,77 @@ using namespace std;
 using namespace cv;
 
 
-string test_image_path = "/home/fo_pluto/opencv_home/demo5.jpg";
+string test_image_path = "/home/fo_pluto/opencv_home/demo3.jpg";
 
 typedef pair<int, pair<int, int>> PIII;
 
 typedef pair<int, int> PII;
+
+
+//模板匹配
+bool Comp(pair<int, int>a, pair<int, int>b) {
+    return a.second < b.second;
+}
+int CalcImg(Mat inputImg) {
+    int nums = 0;
+    for (int i = 0; i < inputImg.rows; i++) {
+        for (int j = 0; j < inputImg.cols; j++) {
+            if (inputImg.at<uchar>(i, j) != 0) {
+                nums += inputImg.at<uchar>(i, j);
+            }
+        }
+    }
+    return nums;
+}
+//模板匹配的主要函数
+char CheckImg(Mat inputImg) {
+    //读取模板图片
+    string sampleImgPath = "datasets/*.jpg";
+    vector<String> sampleImgFN;
+    glob(sampleImgPath, sampleImgFN, false);
+    int sampleImgNums = sampleImgFN.size();
+
+    pair<int, int>*nums = new pair<int, int>[sampleImgNums];//first 记录模板的索引号，second 记录两图像之差
+    for (int i = 0; i < sampleImgNums; i++) {
+        nums[i].first = i;
+        Mat numImg = imread(sampleImgFN[i], 0);
+        Mat delImg;
+        absdiff(numImg, inputImg, delImg);
+        nums[i].second = CalcImg(delImg);
+    }
+
+    sort(nums, nums + sampleImgNums, Comp);//选择差值最小的模板
+
+    int index = nums[0].first / 2;
+    switch (index) {
+    case 0:
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+    case 5:
+    case 6:
+    case 7:
+    case 8:
+    case 9:
+        return index + '0';
+    case 10:
+        return 'I';
+    case 11:
+        return 'S';
+    case 12:
+        return 'B';
+    case 13:
+        return 'N';
+    case 14:
+        return 'X';
+    case 15:
+        return '-';
+    default:
+        return ' ';
+    }
+}
+
 
 void FloodFill(Mat& pic)//水漫操作
 {
@@ -62,32 +128,6 @@ void FloodFill(Mat& pic)//水漫操作
 		}
 	}
 }
-
-void ImgRectify(Mat& pic, Mat& BinaryFlat, Mat& Img, Mat& ImgFlat)//图像矫正, 明天再看看
-{
-	Mat pic_edge;
-	Sobel(pic, pic_edge, -1, 0, 1, 5);
-	//霍夫直线检测（第5个参数是阈值，阈值越大，检测精度越高）
-	vector<Vec2f> Line;
-	HoughLines(pic_edge, Line, 1, CV_PI / 180, 180, 0, 0);
-	//计算偏转角度
-	double Angle = 0;
-	int LineCnt = 0;
-	for (int i = 0; i < Line.size(); i++)
-	{
-		if (Line[i][1] < 1.2 || Line[i][1]>1.8) continue;
-		Angle += Line[i][1];
-		LineCnt++;
-	}
-	if (LineCnt == 0) Angle = CV_PI / 2;
-	else Angle /= LineCnt;
-	Angle = 180 * Angle / CV_PI - 90;
-	Mat pic_tmp = getRotationMatrix2D(Point(pic.cols / 2, pic.rows / 2), Angle, 1);
-	warpAffine(pic, BinaryFlat, pic_tmp, pic.size());
-	warpAffine(Img, ImgFlat, pic_tmp, Img.size());
-	FloodFill(BinaryFlat);
-}
-
 
 
 int main(){
@@ -234,7 +274,7 @@ int main(){
         int num = 0;
         for(int j = 0;j < ROI_image.rows;j++){
             uchar * ch = ROI_image.ptr(j);
-            if(*(ch + i) >= 60) num ++;
+            if(*(ch + i) >= 83) num ++;
         }
         num_area.push_back(num);
     }
@@ -252,26 +292,32 @@ int main(){
         }
     }
 
+    vector<char> ans_;
+
     for(int i = 0;i < num_position.size();i++){
         Mat item_image = ROI_image(Range::all(), Range(num_position[i].first, num_position[i].second));
+        resize(item_image, item_image, Size(32, 32 * item_image.rows / item_image.cols));
         num_ROI_rect.push_back(item_image);
+        // imwrite("datasets/" + to_string(idx_image ++) + ".jpg", item_image);
 
-        #ifdef DEBUG
+        #ifdef DEBUG_GRAY_GRAGH
         string str = "images(";
         imshow(str + to_string(i) + ")", item_image);
         waitKey(0);
         #endif
     }
-
-    // 调试代码，可以改宏定义
+    
+    puts("");
     
 
+    // 调试代码，可以改宏定义
     #ifdef DEBUG_LINE // 调试直线检测
     imshow("lines_image", src_copy_image);
     #endif
 
     #ifdef DEBUG // 调试图像
-    // imshow("res_ROI_image", ROI_image); // 最后输出的图片为res_image
+    imshow("res_image", res_image);
+    imshow("res_ROI_image", ROI_image); // 最后输出的图片为res_image
     waitKey(0);
     #endif
 
