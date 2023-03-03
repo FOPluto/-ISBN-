@@ -22,7 +22,7 @@ using namespace cv;
 
 // 宏定义：如果不注释就是打开对应DEBUG模式
 
-#define DEBUG_ALL
+// #define DEBUG_ALL
 
 #ifdef DEBUG_ALL
 

@@ -198,7 +198,7 @@ Mat detectSolution::get_res_image(Mat& src_image, int type){
     this->get_average_light(gaussian_image);
 
     // 使用大津法进行二值化处理
-    adaptiveThreshold(gaussian_image, threshold_image, 255, ADAPTIVE_THRESH_MEAN_C, type, 161, 18);
+    adaptiveThreshold(gaussian_image, threshold_image, 255, ADAPTIVE_THRESH_MEAN_C, type, 159, 18);
     // 二值化调试
     #ifdef DEBUG_THRESHOLD
     imshow("threshold_image", threshold_image);
@@ -272,7 +272,7 @@ void detectSolution::find_ROI(){
     }
 
     for(int i = 0;i < num_area.size();i++){
-        if(num_area[i]){
+        if(num_area[i] >= 6){
             PII item = {max(i - 1, 0), 0};
             int idx = i;
             while(num_area[idx]) idx ++;
