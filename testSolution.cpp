@@ -10,14 +10,14 @@ pair<double, double> testSolution::test(string test_path){
         detectSolution* detect_item = new detectSolution(this->sample_path);
         string testItem = testImgFN[i];
         detect_item->fit(testItem);
-        string ac = "";
+
         int idx = testItem.find("ISBN ", 0);
-        while(testItem[idx] != '.'){
-            ac += testItem[idx ++];
-        }
+        testItem = testItem.substr(idx + 5, testItem.length() - idx - 9);
+        int idx_copy = idx;
+
         string ans = detect_item->get_res();
 
-        if(ans == ac) s_p_num ++;
+        if(ans == testItem) s_p_num ++;
         s_num ++;
         for(int j = 0;j < testItem.length() && j < ans.length();j++){
             if(ans[j] == testItem[j]) c_p_num ++;

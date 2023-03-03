@@ -21,7 +21,17 @@ using namespace cv;
 #define DONE 0
 
 // 宏定义：如果不注释就是打开对应DEBUG模式
-#define DEBUG
+
+#define DEBUG_ALL
+
+#ifdef DEBUG_ALL
+
+//#define DEBUG
+
+#define DEBUG_THRESHOLD // 二值化调试
+#define DEBUG_RES // 预处理调试
+
+#endif
 
 typedef pair<int, pair<int, int>> PIII;
 
@@ -36,6 +46,7 @@ class detectSolution{
 
     Mat src_image;     // 输入图片
     Mat src_copy_image;    // 拷贝输入图片
+    Mat gray_image;
     Mat threshold_image;   //处理之后的二值化图片
     Mat rotated_image;   // 旋转之后的图像
     Mat res_image;    // 处理完成的图像，提取兴趣框时用
@@ -54,14 +65,21 @@ class detectSolution{
 
     double StrNum;   // 字符串准确度
 
+    double average;
+
     private:
 
+    // 旋转操作
+    void ImgRectify(Mat& pic, Mat& BinaryFlat);
+
+    // 获取平均亮度
+    void get_average_light(Mat _src);
 
     // 计算图像像素点值的平均值，用于分类
     double CalcImg(Mat inputImg);
 
     // 模板匹配的主要函数
-    char CheckImg(Mat inputImg);
+    char CheckImg(Mat inputImg, int idx);
 
     // 水浸操作
     void FloodFill(Mat& pic);

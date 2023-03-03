@@ -3,14 +3,13 @@
 
 
 
-
 double detectSolution::CalcImg(Mat inputImg) {
     double nums = 0;
     int temp = 0;
     for (int i = 0; i < inputImg.rows; i++) {
         for (int j = 0; j < inputImg.cols; j++) {
-            if (inputImg.at<uchar>(i, j) != 0) {
-                nums += inputImg.at<uchar>(i, j);
+            if (inputImg.ptr(i)[j] != 0) {
+                nums += inputImg.ptr(i)[j];
                 temp ++;
             }
         }
@@ -19,14 +18,23 @@ double detectSolution::CalcImg(Mat inputImg) {
 }
 
 
+void detectSolution::get_average_light(Mat _src){
+    double sum = 0;
+    for(int i = 0;i < _src.rows;i++){
+        for(int j = 0;j < _src.cols;j++){
+            sum += _src.ptr(i)[j];
+        }
+    }
+    this->average =  sum / (_src.rows * _src.cols);
+}
+
 
 
 // pair比较函数
 bool MCompare(pair<int, double>a, pair<int, double>b) {return a.second < b.second;}
 
-
 //模板匹配的主要函数
-char detectSolution::CheckImg(Mat inputImg) {
+char detectSolution::CheckImg(Mat inputImg, int idx) {
     //读取模板图片
     vector<String> sampleImgFN;
     glob(sampleImgPath, sampleImgFN, false);
@@ -34,18 +42,31 @@ char detectSolution::CheckImg(Mat inputImg) {
 
     pair<int, double>*nums = new pair<int, double>[sampleImgNums];//first 记录模板的索引号，second 记录两图像之差
     for (int i = 0; i < sampleImgNums; i++) {
-        nums[i].first = i;
+        
         Mat numImg = imread(sampleImgFN[i], 0);
         Mat delImg;
         resize(inputImg, inputImg, Size(numImg.cols, numImg.rows));
         absdiff(numImg, inputImg, delImg);
 
+        nums[i].first = i;
         nums[i].second = CalcImg(delImg);
     }
 
     sort(nums, nums + sampleImgNums, MCompare);//选择差值最小的模板
+    int ans_idx = 0;
+    for(int i = 0;i < sampleImgNums; ++i){
+        if(idx > 5){ // 数字，就不用判断字母了
+            // 找到最靠前的数字
+            while(nums[ans_idx].first / 3 >= 10 && nums[ans_idx].first / 3 != 15) ans_idx ++;
+        } else if(idx < 3){ // 字母
+            // 找到最靠前的字母
+            while(nums[ans_idx].first / 3 <= 9) ans_idx ++;
+        }
+    }
 
-    int index = nums[0].first / 3;
+    int index = nums[ans_idx].first;
+
+    index = index / 3;
     switch (index) {
     case 0:
     case 1:
@@ -116,6 +137,37 @@ void detectSolution::FloodFill(Mat& pic)//水漫操作
 }
 
 
+// 旋转操作
+void detectSolution::ImgRectify(Mat& pic, Mat& BinaryFlat)//图像矫正
+{
+	Mat pic_edge;
+	Sobel(pic, pic_edge, -1, 0, 1, 5);
+	//霍夫直线检测（第5个参数是阈值，阈值越大，检测精度越高）
+	vector<Vec2f> Line;
+	HoughLines(pic_edge, Line, 1, CV_PI / 180, 180, 0, 0);
+	//计算偏转角度
+	double Angle = 0;
+	int LineCnt = 0;
+	for (int i = 0; i < Line.size(); i++)
+	{
+		if (Line[i][1] < 1.2 || Line[i][1]>1.8) continue;
+		Angle += Line[i][1];
+		LineCnt++;
+	}
+	if (LineCnt == 0) Angle = CV_PI / 2;
+	else Angle /= LineCnt;
+	Angle = 180 * Angle / CV_PI - 90;
+	Mat pic_tmp = getRotationMatrix2D(Point(pic.cols / 2, pic.rows / 2), Angle, 1);
+    Size src_size = Size(pic.cols * 1.42, pic.rows);
+	warpAffine(pic, BinaryFlat, pic_tmp, src_size);
+	warpAffine(this->src_copy_image, this->src_copy_image, pic_tmp, src_size);
+	FloodFill(BinaryFlat);
+}
+
+
+
+
+
 
 
 // 图像预处理操作
@@ -124,104 +176,39 @@ Mat detectSolution::get_res_image(Mat& src_image, int type){
     this->src_image.copyTo(src_copy_image);
 
     // 灰度化处理
-    Mat gray_image;
     cvtColor(src_image, gray_image, COLOR_RGB2GRAY);
-
 
     Mat erode_dilate_image;
     Mat element = getStructuringElement(MORPH_RECT, Size(3, 3));
-    dilate(gray_image, erode_dilate_image, element);
-    erode(erode_dilate_image, erode_dilate_image, element);
-
-
     // 高斯滤波处理
-    Mat gaussian_image;
-    GaussianBlur(erode_dilate_image, gaussian_image, Size(1, 1), 0, 0, BORDER_DEFAULT);
+    Mat gaussian_image, bilateral_image;
+    GaussianBlur(gray_image, gaussian_image, Size(3, 3), 0, 0, BORDER_DEFAULT);
 
+    // bilateralFilter(gray_image, bilateral_image,  20, 200, 20);
+    
+    #ifdef DEBUG_BLUR
+
+    imshow("gaussian_image", gaussian_image);
+    // imshow("bilateral_image", bilateral_image);
+    waitKey(0);
+
+    #endif
+
+    // 获取平均亮度
+    this->get_average_light(gaussian_image);
 
     // 使用大津法进行二值化处理
-    threshold(gaussian_image, threshold_image, 0, 255, type | THRESH_OTSU);
+    adaptiveThreshold(gaussian_image, threshold_image, 255, ADAPTIVE_THRESH_MEAN_C, type, 161, 18);
+    // 二值化调试
+    #ifdef DEBUG_THRESHOLD
+    imshow("threshold_image", threshold_image);
+    imshow("gray_image", gray_image);
+    waitKey(0);
+    #endif
 
-    // canny边缘检测
-    Mat canny_image;
-    Canny(threshold_image, canny_image, 50, 150, 3, false);
+    Mat res_image;
+    ImgRectify(threshold_image, res_image);
 
-    vector<Vec4f> lines;
-
-    // 获取霍夫曼直线
-    HoughLinesP(canny_image, lines, 2, CV_PI / 180, 60, 100, 5);
-    // printf("canny_image_lines_size:  %d\n", lines.size());
-    
-    // 计算平均角度
-    double angle = 0;
-    int num = 0;
-    // 遍历所有直线
-    for(int i = 0;i < lines.size();i++){
-        double x_item = lines[i].val[0] - lines[i].val[2];
-        double y_item = lines[i].val[1] - lines[i].val[3];
-        // if(abs(x_item / y_item) >= 1) continue;
-
-        // 画条线调试一下
-        Vec4f hline = lines[i];
-		line(src_copy_image, Point(hline[0], hline[1]), Point(hline[2], hline[3]), Scalar(0, 255, 0), 2);
-        // 利用反三角函数求出来角度加到angle中，方便求平均
-        double angle_item = x_item / y_item;
-        angle += atan(angle_item) * 180 / CV_PI;
-        num ++;
-        // printf("lines[%d]: %lf\n", i, angle_item * 180 / CV_PI);
-    }
-    // 计算平均
-    angle /= lines.size();
-    // printf("average_angle: %lf\n", angle);
-
-    Point2f center = Point2f(src_image.rows / 2.0, src_image.cols / 2.0);
-
-    Mat get_temp_mat = getRotationMatrix2D(center, -angle, 1.0);
-
-    // 获取到输出图片的大小，这里宽度在原来基础上要加上一点
-    cv::Size src_sz = threshold_image.size();
-    cv::Size dst_sz(src_sz.width * 1.2, src_sz.height);
-    // 对输出的图像处理
-    warpAffine(threshold_image, rotated_image, get_temp_mat, dst_sz);
-    // 对原始图像处理，方便调试
-    warpAffine(src_copy_image, src_copy_image, get_temp_mat, dst_sz);
-
-    // puts("......");
-    // 然后再在水平方向上拉直
-    // 获取霍夫曼直线
-    Mat canny_rotated_image;
-    lines.clear();
-    Canny(rotated_image, canny_rotated_image, 50, 150, 3, false);
-    HoughLinesP(canny_rotated_image, lines, 2, CV_PI / 180, 60, 50, 74);
-    // printf("canny_image_lines_size:  %d\n", lines.size());
-    
-    angle = 0; num = 0;
-    for(int i = 0;i < lines.size();i++){
-        double x_item = lines[i].val[0] - lines[i].val[2];
-        double y_item = lines[i].val[1] - lines[i].val[3];
-        if(abs(y_item / x_item) >= 1) continue;
-        if(lines[i].val[1] > canny_rotated_image.rows / 2 && lines[i].val[3] > canny_rotated_image.rows / 2) continue;
-
-        // 画条线调试一下
-        Vec4f hline = lines[i];
-		line(src_copy_image, Point(hline[0], hline[1]), Point(hline[2], hline[3]), Scalar(0, 0, 255), 2);
-
-        // 计算角度，并加到angle中求平均
-        double angle_item = y_item / x_item;
-        angle += atan(angle_item) * 180 / CV_PI;
-        num ++;
-        // printf("lines[%d]: %lf\n", i, angle_item * 180 / CV_PI);
-    }
-    angle /= num;
-
-    Mat temp_for_x = getRotationMatrix2D(center, angle, 1.0);
-    Mat res_image; // 最终图像
-    // 对输出的图像处理
-    warpAffine(rotated_image, res_image, temp_for_x, dst_sz);
-    // 对输入图像处理，方便调试
-    warpAffine(src_copy_image, src_copy_image, temp_for_x, dst_sz);
-
-    FloodFill(res_image);
     return res_image;
 }
 
@@ -230,7 +217,7 @@ Mat detectSolution::get_res_image(Mat& src_image, int type){
 
 // resize_stand函数，将图片resize成为较小尺寸，减少计算量
 void detectSolution::resize_stand(){
-    double width = 900;
+    double width = 1200;
     double height = width * (double)src_image.rows / src_image.cols;
     resize(src_image, src_image, cv::Size(width, height));
 }
@@ -245,22 +232,31 @@ void detectSolution::find_ROI(){
         }
         rows_element.push_back(sum);
         points.push_back(Point(sum / 2, i));
-        if(i) line(src_copy_image, points[i - 1], points[i], Scalar(255, 0, 0), 2);
+        if(i) line(src_copy_image, points[max(0, i - 1)], points[i], Scalar(255, 0, 0), 2);
     }
 
     int idx = -1;
     for(int i = 0;i < rows_element.size() / 2;i++){
-        if(rows_element[i] >= 12 && rows_element[i] <= 310){
+        if(rows_element[i] >= 42){
             PIII item = {++ idx, {i, 0}};
             ans.push_back(item);
             int idx = i;
-            while(rows_element[idx] >= 12) idx ++;
+            while(rows_element[idx] >= 42) idx ++;
             ans[item.first].second.second = idx;
             i = ++ idx;
         }
     }
 
-    int _begin = ans[ans.size() - 2].second.first, _end = ans[ans.size() - 2].second.second;
+    #ifdef DEBUG
+    imshow("src_image", src_image);
+    imshow("res_image", res_image);
+    waitKey(0);
+    #endif
+
+    int _begin = ans[max(0, (int)ans.size() - 2)].second.first, _end = ans[max(0, (int)ans.size() - 2)].second.second;
+
+    // 如果没有提取到，直接返回
+    if(_begin >= _end) return;
 
     // 提取兴趣框
     this->ROI_image = res_image(Range(_begin, _end), Range::all());
@@ -270,14 +266,14 @@ void detectSolution::find_ROI(){
         int num = 0;
         for(int j = 0;j < ROI_image.rows;j++){
             uchar * ch = ROI_image.ptr(j);
-            if(*(ch + i) >= 83) num ++;
+            if(*(ch + i) >= 103) num ++;
         }
         num_area.push_back(num);
     }
 
     for(int i = 0;i < num_area.size();i++){
         if(num_area[i]){
-            PII item = {i - 1, 0};
+            PII item = {max(i - 1, 0), 0};
             int idx = i;
             while(num_area[idx]) idx ++;
             item.second = idx;
@@ -313,10 +309,14 @@ int detectSolution::fit(string src_path){
     // cout << "average_: " << _sum << endl;
 
     // 如果平均像素值过小，那么换一个参数重新进行预处理
-    if(_sum <= 40) this->res_image = get_res_image(this->src_image, THRESH_BINARY);
+    if(_sum <= 14) this->res_image = get_res_image(this->src_image, THRESH_BINARY);
 
-    // 浸水操作
-    this->FloodFill(this->res_image);
+
+    #ifdef DEBUG_RES
+
+    imshow("res", this->res_image);
+    waitKey(0);
+    #endif
 
     // 寻找ROI区域
     this->find_ROI();
@@ -330,17 +330,18 @@ int detectSolution::fit(string src_path){
     for(int i = 0;i < num_position.size();i++){
         Mat item_image = ROI_image(Range::all(), Range(num_position[i].first, num_position[i].second));
         num_ROI_rect.push_back(item_image);
-        char ch = CheckImg(item_image);
+        char ch = CheckImg(item_image, i + 1); // 传入image和第几个
+
         ans_.push_back(ch);
         //imwrite("demo/" + to_string(idx_image ++) + ".jpg", item_image); // 存储自制模板
     }
     bool flag = false;
 
     // 整理结果
-    for(int i = 0;i < ans_.size();i++){
+    for(int i = 0;i < ans_.size() && res_str.length() < 17;i++){
         if(flag){
             res_str += ans_[i];
-        }else if(ans_[i] == 'N'){
+        }else if(ans_[i] == 'N' || ans_[i + 1] == '9'){
             flag = true;
         }
     }
