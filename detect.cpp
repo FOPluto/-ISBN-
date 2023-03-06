@@ -245,7 +245,7 @@ Mat detectSolution::get_res_image(Mat& src_image, int type) {
     // 获取平均亮度
     this->get_average_light(gaussian_image);
 
-    // 使用大津法进行二值化处理
+    // 使用自适应法进行二值化处理
     adaptiveThreshold(gaussian_image, threshold_image, 255, ADAPTIVE_THRESH_MEAN_C, type, 159, 18);
 
     // 二值化调试
