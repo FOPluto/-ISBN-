@@ -1,12 +1,14 @@
 #include "testSolution.h"
 
-/// @brief æµ‹è¯•ï¼Œå¾—åˆ°æ¨¡åž‹çš„å‡†ç¡®åº¦å’Œå‡†ç¡®çŽ‡
-pair<double, double> testSolution::test(string test_path){
+/// @brief ²âÊÔ£¬µÃµ½Ä£ÐÍµÄ×¼È·¶ÈºÍ×¼È·ÂÊ
+pair<double, double> testSolution::test(string test_path) 
+{
     vector<String> testImgFN;
     glob(test_path, testImgFN, false);
-    int c_num = 0, c_p_num = 0;  //å­—ç¬¦
-    int s_num = 0, s_p_num = 0;  //å­—ç¬¦ä¸²
-    for(int i = 0;i < testImgFN.size();i++){
+    int c_num = 0, c_p_num = 0;  //×Ö·û
+    int s_num = 0, s_p_num = 0;  //×Ö·û´®
+    for (int i = 0; i < testImgFN.size(); i++) 
+    {
         detectSolution* detect_item = new detectSolution(this->sample_path);
         string testItem = testImgFN[i];
         detect_item->fit(testItem);
@@ -17,14 +19,41 @@ pair<double, double> testSolution::test(string test_path){
 
         string ans = detect_item->get_res();
 
-        if(ans == testItem) s_p_num ++;
-        s_num ++;
-        for(int j = 0;j < testItem.length() && j < ans.length();j++){
-            if(ans[j] == testItem[j]) c_p_num ++;
+        if (ans == testItem)
+        {   
+            s_p_num++;
+        }
+        s_num++;
+
+        for (int j = 0; j < testItem.length() && j < ans.length(); j++) 
+        {
+            if (ans[j] == testItem[j]) c_p_num++;
         }
         c_num += testItem.length();
-        cout << detect_item->get_res() << endl;
+        cout << detect_item->get_res() << setw(10);
+        
+        if (ans == testItem)
+        {
+            cout << "right, ";
+            cout << "right_num: " << s_p_num  <<"   ";
+            cout << "right_rate: " << s_p_num << "/" << s_num << "=" << (double)s_p_num / s_num * 100<<setprecision(4) << "%"  << "   ";
+            cout << "accuracy: " << c_p_num<<"/"<< c_num<<"="<<(double)c_p_num / c_num * 100 << "%"  << endl;
+            cout << endl;
+        }
+        else {
+            cout << "fail, ";
+            cout << "fail_num: " << s_p_num << "   ";
+            cout << "right_rate: " << s_p_num << "/" << s_num << "=" << (double)s_p_num / s_num * 100 << setprecision(4) << "%" << "   ";
+            cout << "accuracy: " << c_p_num << "/" << c_num << "=" << (double)c_p_num / c_num * 100 << "%" << endl;
+            cout << endl;
+        }
+
+
+
+
+        
         delete detect_item;
     }
-    return {(double)c_p_num / c_num, (double)s_p_num / s_num};
+    return { (double)s_p_num / s_num, (double)c_p_num / c_num };
+    //return { c_p_num,c_num };
 }

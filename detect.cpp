@@ -1,66 +1,114 @@
 #include "detect.h"
-
-
-
-
-double detectSolution::CalcImg(Mat inputImg) {
+double detectSolution::CalcImg(Mat inputImg) 
+{
     double nums = 0;
     int temp = 0;
-    for (int i = 0; i < inputImg.rows; i++) {
-        for (int j = 0; j < inputImg.cols; j++) {
-            if (inputImg.ptr(i)[j] != 0) {
+    for (int i = 0; i < inputImg.rows; i++) 
+    {
+        for (int j = 0; j < inputImg.cols; j++) 
+        {
+            if (inputImg.ptr(i)[j] != 0) 
+            {
                 nums += inputImg.ptr(i)[j];
-                temp ++;
+                temp++;
             }
         }
     }
     return nums / (inputImg.rows * inputImg.cols);
 }
 
+int SortMid(int val[])
+{
+    for (int i = 0; i < 9; i++)
+        for (int j = 0; j < 8 - i; j++)
+            if (val[j] > val[j + 1])
+            {
+                int tmp = val[j];
+                val[j] = val[j + 1];
+                val[j + 1] = tmp;
+            }
+    return val[4];
+}
+void ImgDenoise(Mat& pic, Mat& ImgClear)//ÖĞÖµÂË²¨È¥Ôë
+{
+    int dx[] = { 0,-1,0,1,-1,1,-1,0,1 };
+    int dy[] = { 0,1,1,1,0,0,-1,-1,-1 };
+    ImgClear = Mat(pic.rows, pic.cols, CV_8UC1);
+    int val[10], mid;
+    for (int i = 0; i < pic.rows; i++)//Ìø¹ı±ßÔµ²»´¦Àí
+        for (int j = 0; j < pic.cols; j++)
+        {
+            if (i == 0 || j == 0 || i == pic.rows - 1 || j == pic.cols - 1)
+            {
+                ImgClear.at<uchar>(i, j) = pic.at<uchar>(i, j);
+                continue;
+            }
+            for (int k = 0; k < 9; k++)
+                val[k] = pic.at<uchar>(i + dx[k], j + dy[k]);
+            mid = SortMid(val);
+            ImgClear.at<uchar>(i, j) = mid;
+        }
+}
 
-void detectSolution::get_average_light(Mat _src){
+void detectSolution::get_average_light(Mat _src) 
+{
     double sum = 0;
-    for(int i = 0;i < _src.rows;i++){
-        for(int j = 0;j < _src.cols;j++){
+    for (int i = 0; i < _src.rows; i++) 
+    {
+        for (int j = 0; j < _src.cols; j++) 
+        {
             sum += _src.ptr(i)[j];
         }
     }
-    this->average =  sum / (_src.rows * _src.cols);
+    this->average = sum / (_src.rows * _src.cols);
 }
 
 
 
-// pairæ¯”è¾ƒå‡½æ•°
-bool MCompare(pair<int, double>a, pair<int, double>b) {return a.second < b.second;}
+// pair±È½Ïº¯Êı
+bool MCompare(pair<int, double>a, pair<int, double>b) 
+{ 
+    return a.second < b.second; 
+}
 
-//æ¨¡æ¿åŒ¹é…çš„ä¸»è¦å‡½æ•°
-char detectSolution::CheckImg(Mat inputImg, int idx) {
-    //è¯»å–æ¨¡æ¿å›¾ç‰‡
+//Ä£°åÆ¥ÅäµÄÖ÷Òªº¯Êı
+char detectSolution::CheckImg(Mat inputImg, int idx) 
+{
+    //¶ÁÈ¡Ä£°åÍ¼Æ¬
     vector<String> sampleImgFN;
     glob(sampleImgPath, sampleImgFN, false);
     int sampleImgNums = sampleImgFN.size();
 
-    pair<int, double>*nums = new pair<int, double>[sampleImgNums];//first è®°å½•æ¨¡æ¿çš„ç´¢å¼•å·ï¼Œsecond è®°å½•ä¸¤å›¾åƒä¹‹å·®
-    for (int i = 0; i < sampleImgNums; i++) {
-        
+    pair<int, double>* nums = new pair<int, double>[sampleImgNums];//first ¼ÇÂ¼Ä£°åµÄË÷ÒıºÅ£¬second ¼ÇÂ¼Á½Í¼ÏñÖ®²î
+    for (int i = 0; i < sampleImgNums; i++) 
+    {
         Mat numImg = imread(sampleImgFN[i], 0);
-        Mat delImg;
+        Mat delImg, demo_del_image;
         resize(inputImg, inputImg, Size(numImg.cols, numImg.rows));
         absdiff(numImg, inputImg, delImg);
 
+        double res;
+        // ³¢ÊÔÊ¹ÓÃ¿âº¯ÊıÖĞµÄÄ£°åÆ¥Åä
+        matchTemplate(inputImg, numImg, demo_del_image, CV_TM_SQDIFF_NORMED);
+
+
         nums[i].first = i;
+        // nums[i].second = CalcImg(delImg);
         nums[i].second = CalcImg(delImg);
     }
 
-    sort(nums, nums + sampleImgNums, MCompare);//é€‰æ‹©å·®å€¼æœ€å°çš„æ¨¡æ¿
+    sort(nums, nums + sampleImgNums, MCompare);//Ñ¡Ôñ²îÖµ×îĞ¡µÄÄ£°å
     int ans_idx = 0;
-    for(int i = 0;i < sampleImgNums; ++i){
-        if(idx > 5){ // æ•°å­—ï¼Œå°±ä¸ç”¨åˆ¤æ–­å­—æ¯äº†
-            // æ‰¾åˆ°æœ€é å‰çš„æ•°å­—
-            while(nums[ans_idx].first / 3 >= 10 && nums[ans_idx].first / 3 != 15) ans_idx ++;
-        } else if(idx < 3){ // å­—æ¯
-            // æ‰¾åˆ°æœ€é å‰çš„å­—æ¯
-            while(nums[ans_idx].first / 3 <= 9) ans_idx ++;
+    for (int i = 0; i < sampleImgNums; ++i) {
+        if (idx > 5) 
+        {   // Êı×Ö£¬¾Í²»ÓÃÅĞ¶Ï×ÖÄ¸ÁË
+            // ÕÒµ½×î¿¿Ç°µÄÊı×Ö
+            while (nums[ans_idx].first / 3 >= 10 && nums[ans_idx].first / 3 != 15) ans_idx++;
+        }
+        else if (idx < 3) 
+        {   // ×ÖÄ¸
+            // ÕÒµ½×î¿¿Ç°µÄ×ÖÄ¸
+            while (nums[ans_idx].first / 3 <= 9) ans_idx++;
         }
     }
 
@@ -96,115 +144,117 @@ char detectSolution::CheckImg(Mat inputImg, int idx) {
     }
 }
 
-
-
-
-
-//æ°´æ¼«æ“ä½œ
-void detectSolution::FloodFill(Mat& pic)//æ°´æ¼«æ“ä½œ
+//Ë®Âş²Ù×÷
+void detectSolution::FloodFill(Mat& pic)//Ë®Âş²Ù×÷
 {
-	int dx[] = { -1,0,1,-1,1,-1,0,1 };
-	int dy[] = { 1,1,1,0,0,-1,-1,-1 };
-	queue<PII> q;
-	for (int i = 0; i < pic.cols; i++)//ä¸Š
-		for (int j = 0; j < 1; j++)
-			if (pic.at<uchar>(j, i) != 0) q.push({ j,i });
-	for (int i = 0; i < pic.cols; i++)//ä¸‹
-		for (int j = pic.rows - 1; j >= pic.rows - 1; j--)
-			if (pic.at<uchar>(j, i) != 0) q.push({ j,i });
-	for (int i = 0; i < pic.rows; i++)//å·¦
-		for (int j = 0; j < 1; j++)
-			if (pic.at<uchar>(i, j) != 0) q.push({ i,j });
-	for (int i = 0; i < pic.rows; i++)//å³
-			for (int j = pic.cols - 1; j >= pic.cols - 1; j--)
-				if (pic.at<uchar>(i, j) != 0) q.push({ i,j });
-	while (!q.empty())
-	{
-		PII t = q.front(); q.pop();
-		int x = t.first, y = t.second;
-		for (int i = 0; i < 8; i++)
-		{
-			int nx = x + dx[i];
-			int ny = y + dy[i];
-			if (nx < 0 || ny < 0 || nx >= pic.rows || ny >= pic.cols) continue;
-			if (pic.at<uchar>(nx, ny) != 0)
-			{
-				pic.at<uchar>(nx, ny) = 0;
-				q.push({ nx,ny });
-			}
-		}
-	}
+    int dx[] = { -1,0,1,-1,1,-1,0,1 };
+    int dy[] = { 1,1,1,0,0,-1,-1,-1 };
+    queue<PII> q;
+    for (int i = 0; i < pic.cols; i++)//ÉÏ
+        for (int j = 0; j < 1; j++)
+            if (pic.at<uchar>(j, i) != 0) q.push({ j,i });
+    for (int i = 0; i < pic.cols; i++)//ÏÂ
+        for (int j = pic.rows - 1; j >= pic.rows - 1; j--)
+            if (pic.at<uchar>(j, i) != 0) q.push({ j,i });
+    for (int i = 0; i < pic.rows; i++)//×ó
+        for (int j = 0; j < 1; j++)
+            if (pic.at<uchar>(i, j) != 0) q.push({ i,j });
+    for (int i = 0; i < pic.rows; i++)//ÓÒ
+        for (int j = pic.cols - 1; j >= pic.cols - 1; j--)
+            if (pic.at<uchar>(i, j) != 0) q.push({ i,j });
+    while (!q.empty())
+    {
+        PII t = q.front(); q.pop();
+        int x = t.first, y = t.second;
+        for (int i = 0; i < 8; i++)
+        {
+            int nx = x + dx[i];
+            int ny = y + dy[i];
+            if (nx < 0 || ny < 0 || nx >= pic.rows || ny >= pic.cols) continue;
+            if (pic.at<uchar>(nx, ny) != 0)
+            {
+                pic.at<uchar>(nx, ny) = 0;
+                q.push({ nx,ny });
+            }
+        }
+    }
 }
 
 
-// æ—‹è½¬æ“ä½œ
-void detectSolution::ImgRectify(Mat& pic, Mat& BinaryFlat)//å›¾åƒçŸ«æ­£
+// Ğı×ª²Ù×÷
+void detectSolution::ImgRectify(Mat& pic, Mat& BinaryFlat)//Í¼Ïñ½ÃÕı
 {
-	Mat pic_edge;
-	Sobel(pic, pic_edge, -1, 0, 1, 5);
-	//éœå¤«ç›´çº¿æ£€æµ‹ï¼ˆç¬¬5ä¸ªå‚æ•°æ˜¯é˜ˆå€¼ï¼Œé˜ˆå€¼è¶Šå¤§ï¼Œæ£€æµ‹ç²¾åº¦è¶Šé«˜ï¼‰
-	vector<Vec2f> Line;
-	HoughLines(pic_edge, Line, 1, CV_PI / 180, 180, 0, 0);
-	//è®¡ç®—åè½¬è§’åº¦
-	double Angle = 0;
-	int LineCnt = 0;
-	for (int i = 0; i < Line.size(); i++)
-	{
-		if (Line[i][1] < 1.2 || Line[i][1]>1.8) continue;
-		Angle += Line[i][1];
-		LineCnt++;
-	}
-	if (LineCnt == 0) Angle = CV_PI / 2;
-	else Angle /= LineCnt;
-	Angle = 180 * Angle / CV_PI - 90;
-	Mat pic_tmp = getRotationMatrix2D(Point(pic.cols / 2, pic.rows / 2), Angle, 1);
+    Mat pic_edge;
+    Sobel(pic, pic_edge, -1, 0, 1, 5);
+    //»ô·òÖ±Ïß¼ì²â£¨µÚ5¸ö²ÎÊıÊÇãĞÖµ£¬ãĞÖµÔ½´ó£¬¼ì²â¾«¶ÈÔ½¸ß£©
+    vector<Vec2f> Line;
+    HoughLines(pic_edge, Line, 1, CV_PI / 180, 180, 0, 0);
+    //¼ÆËãÆ«×ª½Ç¶È
+    double Angle = 0;
+    int LineCnt = 0;
+    for (int i = 0; i < Line.size(); i++)
+    {
+        if (Line[i][1] < 1.2 || Line[i][1]>1.8) continue;
+        Angle += Line[i][1];
+        LineCnt++;
+    }
+    if (LineCnt == 0) Angle = CV_PI / 2;
+    else Angle /= LineCnt;
+    Angle = 180 * Angle / CV_PI - 90;
+    Mat pic_tmp = getRotationMatrix2D(Point(pic.cols / 2, pic.rows / 2), Angle, 1);
     Size src_size = Size(pic.cols * 1.42, pic.rows);
-	warpAffine(pic, BinaryFlat, pic_tmp, src_size);
-	warpAffine(this->src_copy_image, this->src_copy_image, pic_tmp, src_size);
-	FloodFill(BinaryFlat);
+    warpAffine(pic, BinaryFlat, pic_tmp, src_size);
+    warpAffine(this->src_copy_image, this->src_copy_image, pic_tmp, src_size);
+    FloodFill(BinaryFlat);
 }
 
-
-
-
-
-
-
-// å›¾åƒé¢„å¤„ç†æ“ä½œ
-Mat detectSolution::get_res_image(Mat& src_image, int type){
-    // å¤åˆ¶Mat
+// Í¼ÏñÔ¤´¦Àí²Ù×÷
+Mat detectSolution::get_res_image(Mat& src_image, int type) {
+    // ¸´ÖÆMat
     this->src_image.copyTo(src_copy_image);
 
-    // ç°åº¦åŒ–å¤„ç†
+    // »Ò¶È»¯´¦Àí
     cvtColor(src_image, gray_image, COLOR_RGB2GRAY);
 
-    Mat erode_dilate_image;
+    Mat dilate_image,erode_image;
     Mat element = getStructuringElement(MORPH_RECT, Size(3, 3));
-    // é«˜æ–¯æ»¤æ³¢å¤„ç†
+
+    dilate(gray_image, dilate_image, element);
+    erode(dilate_image, erode_image, element);
+
+
+    // ¸ßË¹ÂË²¨´¦Àí
     Mat gaussian_image, bilateral_image;
-    GaussianBlur(gray_image, gaussian_image, Size(3, 3), 0, 0, BORDER_DEFAULT);
+    //GaussianBlur(gray_image, gaussian_image, Size(3, 3), 0, 0, BORDER_DEFAULT);
+    //ÖĞÖµÂË²¨´¦Àí
+    //medianBlur(gray_image, gaussian_image, 1);
+    
+    ImgDenoise(erode_image, gaussian_image);
+
 
     // bilateralFilter(gray_image, bilateral_image,  20, 200, 20);
-    
-    #ifdef DEBUG_BLUR
 
-    imshow("gaussian_image", gaussian_image);
-    // imshow("bilateral_image", bilateral_image);
-    waitKey(0);
+#ifdef DEBUG_BLUR
 
-    #endif
+   imshow("gaussian_image", gaussian_image);
+   // imshow("bilateral_image", bilateral_image);
+   waitKey(0);
 
-    // è·å–å¹³å‡äº®åº¦
+#endif
+
+    // »ñÈ¡Æ½¾ùÁÁ¶È
     this->get_average_light(gaussian_image);
 
-    // ä½¿ç”¨å¤§æ´¥æ³•è¿›è¡ŒäºŒå€¼åŒ–å¤„ç†
+    // Ê¹ÓÃ´ó½ò·¨½øĞĞ¶şÖµ»¯´¦Àí
     adaptiveThreshold(gaussian_image, threshold_image, 255, ADAPTIVE_THRESH_MEAN_C, type, 159, 18);
-    // äºŒå€¼åŒ–è°ƒè¯•
-    #ifdef DEBUG_THRESHOLD
-    imshow("threshold_image", threshold_image);
-    imshow("gray_image", gray_image);
-    waitKey(0);
-    #endif
+
+    // ¶şÖµ»¯µ÷ÊÔ
+#ifdef DEBUG_THRESHOLD
+   imshow("threshold_image", threshold_image);
+   imshow("gray_image", gray_image);
+   waitKey(0);
+#endif
+
 
     Mat res_image;
     ImgRectify(threshold_image, res_image);
@@ -212,70 +262,67 @@ Mat detectSolution::get_res_image(Mat& src_image, int type){
     return res_image;
 }
 
-
-
-
-// resize_standå‡½æ•°ï¼Œå°†å›¾ç‰‡resizeæˆä¸ºè¾ƒå°å°ºå¯¸ï¼Œå‡å°‘è®¡ç®—é‡
-void detectSolution::resize_stand(){
+// resize_standº¯Êı£¬½«Í¼Æ¬resize³ÉÎª½ÏĞ¡³ß´ç£¬¼õÉÙ¼ÆËãÁ¿
+void detectSolution::resize_stand() {
     double width = 1200;
     double height = width * (double)src_image.rows / src_image.cols;
     resize(src_image, src_image, cv::Size(width, height));
 }
 
 
-void detectSolution::find_ROI(){
-    for(int i = 0;i < res_image.rows;i++){
+void detectSolution::find_ROI() {
+    for (int i = 0; i < res_image.rows; i++) {
         int sum = 0;
         uchar* ff = res_image.ptr(i);
-        for(int j = 0;j < res_image.cols;j++){
-            if(*(ff + j) >= 100) sum ++;
+        for (int j = 0; j < res_image.cols; j++) {
+            if (*(ff + j) >= 100) sum++;
         }
         rows_element.push_back(sum);
         points.push_back(Point(sum / 2, i));
-        if(i) line(src_copy_image, points[max(0, i - 1)], points[i], Scalar(255, 0, 0), 2);
+        if (i) line(src_copy_image, points[max(0, i - 1)], points[i], Scalar(255, 0, 0), 2);
     }
 
     int idx = -1;
-    for(int i = 0;i < rows_element.size() / 2;i++){
-        if(rows_element[i] >= 42){
-            PIII item = {++ idx, {i, 0}};
+    for (int i = 0; i < rows_element.size() / 2; i++) {
+        if (rows_element[i] >= 42) {
+            PIII item = { ++idx, {i, 0} };
             ans.push_back(item);
             int idx = i;
-            while(rows_element[idx] >= 42) idx ++;
+            while (rows_element[idx] >= 42) idx++;
             ans[item.first].second.second = idx;
-            i = ++ idx;
+            i = ++idx;
         }
     }
-
-    #ifdef DEBUG
+    
+#ifdef DEBUG
     imshow("src_image", src_image);
     imshow("res_image", res_image);
     waitKey(0);
-    #endif
+#endif
 
     int _begin = ans[max(0, (int)ans.size() - 2)].second.first, _end = ans[max(0, (int)ans.size() - 2)].second.second;
 
-    // å¦‚æœæ²¡æœ‰æå–åˆ°ï¼Œç›´æ¥è¿”å›
-    if(_begin >= _end) return;
+    // Èç¹ûÃ»ÓĞÌáÈ¡µ½£¬Ö±½Ó·µ»Ø
+    if (_begin >= _end) return;
 
-    // æå–å…´è¶£æ¡†
+    // ÌáÈ¡ĞËÈ¤¿ò
     this->ROI_image = res_image(Range(_begin, _end), Range::all());
 
 
-    for(int i = 0;i < ROI_image.cols;i++){
+    for (int i = 0; i < ROI_image.cols; i++) {
         int num = 0;
-        for(int j = 0;j < ROI_image.rows;j++){
-            uchar * ch = ROI_image.ptr(j);
-            if(*(ch + i) >= 103) num ++;
+        for (int j = 0; j < ROI_image.rows; j++) {
+            uchar* ch = ROI_image.ptr(j);
+            if (*(ch + i) >= 103) num++;
         }
         num_area.push_back(num);
     }
 
-    for(int i = 0;i < num_area.size();i++){
-        if(num_area[i] >= 6){
-            PII item = {max(i - 1, 0), 0};
+    for (int i = 0; i < num_area.size(); i++) {
+        if (num_area[i] >= 6) {
+            PII item = { max(i - 1, 0), 0 };
             int idx = i;
-            while(num_area[idx]) idx ++;
+            while (num_area[idx]) idx++;
             item.second = idx;
             i = idx;
             num_position.push_back(item);
@@ -286,62 +333,66 @@ void detectSolution::find_ROI(){
 
 
 /**
- * @authors å¯è‰ä¸çŸ¥é“å“¦
- * @brief æœ¬æ–‡ä»¶å†™çš„æ˜¯detectSolutionå¯¹å¤–éƒ¨çš„æ¥å£
+ * @authors ¿ÉÀò²»ÖªµÀÅ¶
+ * @brief ±¾ÎÄ¼şĞ´µÄÊÇdetectSolution¶ÔÍâ²¿µÄ½Ó¿Ú
  * @details fit test
 */
 
-/// å¤–éƒ¨æ¥å£
-int detectSolution::fit(string src_path){
-    // è¾“å…¥å›¾åƒ
+/// Íâ²¿½Ó¿Ú
+int detectSolution::fit(string src_path) {
+    // ÊäÈëÍ¼Ïñ
     this->src_image = imread(src_path);
-    if(!this->src_image.data) {
+    if (!this->src_image.data) {
         cout << "src_image_empty!" << endl;
         return ERROR;
     }
-    
-    // å›¾åƒæ ‡å‡†åŒ–ï¼Œå¹¶è¿›è¡Œé¢„å¤„ç†
+
+    // Í¼Ïñ±ê×¼»¯£¬²¢½øĞĞÔ¤´¦Àí
     this->resize_stand();
     this->res_image = this->get_res_image(this->src_image, THRESH_BINARY_INV);
 
-    // è®¡ç®—å›¾åƒçš„å¹³å‡åƒç´ å€¼
+    // ¼ÆËãÍ¼ÏñµÄÆ½¾ùÏñËØÖµ
     double _sum = CalcImg(this->res_image);
     // cout << "average_: " << _sum << endl;
 
-    // å¦‚æœå¹³å‡åƒç´ å€¼è¿‡å°ï¼Œé‚£ä¹ˆæ¢ä¸€ä¸ªå‚æ•°é‡æ–°è¿›è¡Œé¢„å¤„ç†
-    if(_sum <= 14) this->res_image = get_res_image(this->src_image, THRESH_BINARY);
+    // Èç¹ûÆ½¾ùÏñËØÖµ¹ıĞ¡£¬ÄÇÃ´»»Ò»¸ö²ÎÊıÖØĞÂ½øĞĞÔ¤´¦Àí
+    if (_sum <= 14) this->res_image = get_res_image(this->src_image, THRESH_BINARY);
 
 
-    #ifdef DEBUG_RES
+#ifdef DEBUG_RES
 
     imshow("res", this->res_image);
     waitKey(0);
-    #endif
+#endif
 
-    // å¯»æ‰¾ROIåŒºåŸŸ
+    // Ñ°ÕÒROIÇøÓò
     this->find_ROI();
 
-    // å‡†å¤‡è·å–ans
+    // ×¼±¸»ñÈ¡ans
     vector<char> ans_;
     this->res_str = "";
     int idx_image = 0;
 
-    // å¼€å§‹æ¨¡æ¿åŒ¹é…
-    for(int i = 0;i < num_position.size();i++){
+    // ¿ªÊ¼Ä£°åÆ¥Åä
+    for (int i = 0; i < num_position.size(); i++) {
         Mat item_image = ROI_image(Range::all(), Range(num_position[i].first, num_position[i].second));
         num_ROI_rect.push_back(item_image);
-        char ch = CheckImg(item_image, i + 1); // ä¼ å…¥imageå’Œç¬¬å‡ ä¸ª
+        char ch = CheckImg(item_image, i + 1); // ´«ÈëimageºÍµÚ¼¸¸ö
 
         ans_.push_back(ch);
-        //imwrite("demo/" + to_string(idx_image ++) + ".jpg", item_image); // å­˜å‚¨è‡ªåˆ¶æ¨¡æ¿
+        // Ç°ÆÚ¹¤×÷´úÂë
+        // imwrite("D:\\ISBN\\demo\\" + to_string(idx_image ++) + ".jpg", item_image); // ´æ´¢×ÔÖÆÄ£°å
     }
     bool flag = false;
 
-    // æ•´ç†ç»“æœ
-    for(int i = 0;i < ans_.size() && res_str.length() < 17;i++){
-        if(flag){
+    // ÕûÀí½á¹û
+    for (int i = 0; i < ans_.size() && res_str.length() < 17; i++) 
+    {
+        if (flag) {
             res_str += ans_[i];
-        }else if(ans_[i] == 'N' || ans_[i + 1] == '9'){
+        }
+        else if ((ans_[i] == 'N' || ans_[i + 1] == '9') && i >= 2) 
+        {
             flag = true;
         }
     }
@@ -349,16 +400,17 @@ int detectSolution::fit(string src_path){
 }
 
 
-/// @brief è·å–ç»“æœ
-/// @return string
-string detectSolution::get_res(){
+string detectSolution::get_res() 
+{
     return this->res_str;
 }
 
-double detectSolution::getChNum(){
+double detectSolution::getChNum() 
+{
     return this->ChNum;
 }
 
-double detectSolution::getStrNum(){
+double detectSolution::getStrNum() 
+{
     return this->StrNum;
 }

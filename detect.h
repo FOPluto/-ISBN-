@@ -5,7 +5,6 @@
 #define DETECT
 
 #include <opencv2/opencv.hpp>
-#include <opencv2/aruco.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <iostream>
@@ -14,13 +13,14 @@
 #include <algorithm>
 #include <cmath>
 
+
 using namespace std;
 using namespace cv;
 
 #define ERROR -1
 #define DONE 0
 
-// å®å®šä¹‰ï¼šå¦‚æœä¸æ³¨é‡Šå°±æ˜¯æ‰“å¼€å¯¹åº”DEBUGæ¨¡å¼
+// ºê¶¨Òå£ºÈç¹û²»×¢ÊÍ¾ÍÊÇ´ò¿ª¶ÔÓ¦DEBUGÄ£Ê½
 
 // #define DEBUG_ALL
 
@@ -28,8 +28,8 @@ using namespace cv;
 
 //#define DEBUG
 
-#define DEBUG_THRESHOLD // äºŒå€¼åŒ–è°ƒè¯•
-#define DEBUG_RES // é¢„å¤„ç†è°ƒè¯•
+#define DEBUG_THRESHOLD          // ¶şÖµ»¯µ÷ÊÔ
+#define DEBUG_RES                // Ô¤´¦Àíµ÷ÊÔ
 
 #endif
 
@@ -39,75 +39,75 @@ typedef pair<int, int> PII;
 
 
 
-class detectSolution{
-    private:
-    // æ ·æœ¬å›¾ç‰‡çš„è·¯å¾„
+class detectSolution {
+private:
+    // Ñù±¾Í¼Æ¬µÄÂ·¾¶
     string sampleImgPath;
 
-    Mat src_image;     // è¾“å…¥å›¾ç‰‡
-    Mat src_copy_image;    // æ‹·è´è¾“å…¥å›¾ç‰‡
+    Mat src_image;               // ÊäÈëÍ¼Æ¬
+    Mat src_copy_image;          // ¿½±´ÊäÈëÍ¼Æ¬
     Mat gray_image;
-    Mat threshold_image;   //å¤„ç†ä¹‹åçš„äºŒå€¼åŒ–å›¾ç‰‡
-    Mat rotated_image;   // æ—‹è½¬ä¹‹åçš„å›¾åƒ
-    Mat res_image;    // å¤„ç†å®Œæˆçš„å›¾åƒï¼Œæå–å…´è¶£æ¡†æ—¶ç”¨
-    Mat ROI_image;   // æå–å…´è¶£æ¡†
+    Mat threshold_image;         // ´¦ÀíÖ®ºóµÄ¶şÖµ»¯Í¼Æ¬
+    Mat rotated_image;           // Ğı×ªÖ®ºóµÄÍ¼Ïñ
+    Mat res_image;               // ´¦ÀíÍê³ÉµÄÍ¼Ïñ£¬ÌáÈ¡ĞËÈ¤¿òÊ±ÓÃ
+    Mat ROI_image;               // ÌáÈ¡ĞËÈ¤¿ò
 
-    vector<int> rows_element;   // è¡ŒROIæ„Ÿå…´è¶£åŒºåŸŸ
-    vector<Point> points;  // ç”¨äºè¡¨ç¤ºï¼šæ¯ä¸€è¡Œçš„åƒç´ å€¼å¤§äº100åƒç´ ç‚¹çš„æ•°é‡
-    vector<PIII> ans;   // å­˜å‚¨ç­”æ¡ˆçš„å®¹å™¨
-    vector<int> num_area;   // æ•°å­—çš„ROIæ„Ÿå…´è¶£åŒºåŸŸï¼Œå³å­—ç¬¦åˆ†å‰²
-    vector<PII> num_position;   // æ•°å­—çš„ä½ç½®ä¿¡æ¯ï¼Œç”¨äºå­—ç¬¦åˆ†å‰²
-    vector<Mat> num_ROI_rect;   // æ•°å­—çš„Matï¼Œæˆªå–æ•°å­—çš„ç»“æœ
+    vector<int> rows_element;    // ĞĞROI¸ĞĞËÈ¤ÇøÓò
+    vector<Point> points;        // ÓÃÓÚ±íÊ¾£ºÃ¿Ò»ĞĞµÄÏñËØÖµ´óÓÚ100ÏñËØµãµÄÊıÁ¿
+    vector<PIII> ans;            // ´æ´¢´ğ°¸µÄÈİÆ÷
+    vector<int> num_area;        // Êı×ÖµÄROI¸ĞĞËÈ¤ÇøÓò£¬¼´×Ö·û·Ö¸î
+    vector<PII> num_position;    // Êı×ÖµÄÎ»ÖÃĞÅÏ¢£¬ÓÃÓÚ×Ö·û·Ö¸î
+    vector<Mat> num_ROI_rect;    // Êı×ÖµÄMat£¬½ØÈ¡Êı×ÖµÄ½á¹û
 
-    std::string res_str;  // æœ€ç»ˆçš„ç­”æ¡ˆ
+    std::string res_str;         // ×îÖÕµÄ´ğ°¸
 
-    double ChNum;   // å­—ç¬¦å‡†ç¡®åº¦
+    double ChNum;                // ×Ö·û×¼È·¶È
 
-    double StrNum;   // å­—ç¬¦ä¸²å‡†ç¡®åº¦
+    double StrNum;               // ×Ö·û´®×¼È·¶È
 
-    double average;
+    double average;              // ±£´æÆ½¾ùÁÁ¶È
 
-    private:
+private:
 
-    // æ—‹è½¬æ“ä½œ
+    // Ğı×ª²Ù×÷
     void ImgRectify(Mat& pic, Mat& BinaryFlat);
 
-    // è·å–å¹³å‡äº®åº¦
+    // »ñÈ¡Æ½¾ùÁÁ¶È
     void get_average_light(Mat _src);
 
-    // è®¡ç®—å›¾åƒåƒç´ ç‚¹å€¼çš„å¹³å‡å€¼ï¼Œç”¨äºåˆ†ç±»
+    // ¼ÆËãÍ¼ÏñÏñËØµãÖµµÄÆ½¾ùÖµ£¬ÓÃÓÚ·ÖÀà
     double CalcImg(Mat inputImg);
 
-    // æ¨¡æ¿åŒ¹é…çš„ä¸»è¦å‡½æ•°
+    // Ä£°åÆ¥ÅäµÄÖ÷Òªº¯Êı
     char CheckImg(Mat inputImg, int idx);
 
-    // æ°´æµ¸æ“ä½œ
+    // Ë®½ş²Ù×÷
     void FloodFill(Mat& pic);
 
-    // é¢„å¤„ç†å‡½æ•°, è¿”å›å€¼èµ‹å€¼ç»™res_image
+    // Ô¤´¦Àíº¯Êı, ·µ»ØÖµ¸³Öµ¸øres_image
     Mat get_res_image(Mat& src_image, int type);
 
-    // resize_standå‡½æ•°ï¼Œå°†å›¾ç‰‡resizeæˆä¸ºè¾ƒå°å°ºå¯¸ï¼Œå‡å°‘è®¡ç®—é‡
+    // resize_standº¯Êı£¬½«Í¼Æ¬resize³ÉÎª½ÏĞ¡³ß´ç£¬¼õÉÙ¼ÆËãÁ¿
     void resize_stand();
 
-    // find_ROIå‡½æ•°ï¼Œç”¨äºå¯»æ‰¾æ„Ÿå…´è¶£åŒºåŸŸ
+    // find_ROIº¯Êı£¬ÓÃÓÚÑ°ÕÒ¸ĞĞËÈ¤ÇøÓò
     void find_ROI();
 
-    public:
+public:
 
-    // æ„é€ å‡½æ•°
-    detectSolution(string sample_path) {this->sampleImgPath = sample_path;}
+    // ¹¹Ôìº¯Êı
+    detectSolution(string sample_path) { this->sampleImgPath = sample_path; }
 
-    // è·å–ç»“æœ
+    // »ñÈ¡½á¹û
     string get_res();
 
-    // è·å–å­—ç¬¦å‡†ç¡®åº¦
+    // »ñÈ¡×Ö·û×¼È·¶È
     double getChNum();
 
-    // è·å–å­—ç¬¦ä¸²å‡†ç¡®åº¦
+    // »ñÈ¡×Ö·û´®×¼È·¶È
     double getStrNum();
 
-    // fitå‡½æ•°ï¼Œç”¨äºæ•´ä½“è¯†åˆ«çš„æ¥å£
+    // fitº¯Êı£¬ÓÃÓÚÕûÌåÊ¶±ğµÄ½Ó¿Ú
     int fit(string src_path);
 
 };
