@@ -151,16 +151,16 @@ void detectSolution::FloodFill(Mat& pic)//水漫操作
     int dy[] = { 1,1,1,0,0,-1,-1,-1 };
     queue<PII> q;
     for (int i = 0; i < pic.cols; i++)//上
-        for (int j = 0; j < 1; j++)
+        for (int j = 0; j < 3; j++)
             if (pic.at<uchar>(j, i) != 0) q.push({ j,i });
     for (int i = 0; i < pic.cols; i++)//下
-        for (int j = pic.rows - 1; j >= pic.rows - 1; j--)
+        for (int j = pic.rows - 1; j >= pic.rows - 4; j--)
             if (pic.at<uchar>(j, i) != 0) q.push({ j,i });
     for (int i = 0; i < pic.rows; i++)//左
-        for (int j = 0; j < 1; j++)
+        for (int j = 0; j < 3; j++)
             if (pic.at<uchar>(i, j) != 0) q.push({ i,j });
     for (int i = 0; i < pic.rows; i++)//右
-        for (int j = pic.cols - 1; j >= pic.cols - 1; j--)
+        for (int j = pic.cols - 1; j >= pic.cols - 4; j--)
             if (pic.at<uchar>(i, j) != 0) q.push({ i,j });
     while (!q.empty())
     {
@@ -170,6 +170,15 @@ void detectSolution::FloodFill(Mat& pic)//水漫操作
         {
             int nx = x + dx[i];
             int ny = y + dy[i];
+            // 如果越过字符所在行，直接跳过循环
+            bool f1 = false, f2 = false;
+            if(ROI_range.start < ROI_range.end && (nx >= ROI_range.start && nx <= ROI_range.end)) {
+                f1 = true;
+            }
+            if(ROI_range_x.start < ROI_range_x.end && (ny >= ROI_range_x.start && ny <= ROI_range_x.end)) {
+                f2 = true;
+            }
+            if(f1 && f2) continue;
             if (nx < 0 || ny < 0 || nx >= pic.rows || ny >= pic.cols) continue;
             if (pic.at<uchar>(nx, ny) != 0)
             {
@@ -270,6 +279,10 @@ void detectSolution::resize_stand() {
 
 
 void detectSolution::find_ROI() {
+    // 先将上次的工作清除
+    ans.clear();
+    points.clear();
+    rows_element.clear();
     for (int i = 0; i < res_image.rows; i++) {
         int sum = 0;
         uchar* ff = res_image.ptr(i);
@@ -293,21 +306,20 @@ void detectSolution::find_ROI() {
         }
     }
     
-#ifdef DEBUG
-    imshow("src_image", src_image);
-    imshow("res_image", res_image);
-    waitKey(0);
-#endif
-
     int _begin = ans[max(0, (int)ans.size() - 2)].second.first, _end = ans[max(0, (int)ans.size() - 2)].second.second;
 
-    // 如果没有提取到，直接返回
-    if (_begin >= _end) return;
+    // 如果没有提取到导致开始小于结尾，或者太大，直接返回
+    if (_begin >= _end || _begin > 114514) return;
+
+    // 保存兴趣框位置
+    this->ROI_range = Range(_begin, _end);
+
 
     // 提取兴趣框
     this->ROI_image = res_image(Range(_begin, _end), Range::all());
 
-
+    num_area.clear();
+    num_position.clear();
     for (int i = 0; i < ROI_image.cols; i++) {
         int num = 0;
         for (int j = 0; j < ROI_image.rows; j++) {
@@ -327,6 +339,9 @@ void detectSolution::find_ROI() {
             num_position.push_back(item);
         }
     }
+    // 保存x方向的边
+    this->ROI_range_x.start = num_position[0].first;
+    this->ROI_range_x.end = num_position[num_position.size() - 1].second;
 }
 
 
@@ -357,15 +372,34 @@ int detectSolution::fit(string src_path) {
     // 如果平均像素值过小，那么换一个参数重新进行预处理
     if (_sum <= 14) this->res_image = get_res_image(this->src_image, THRESH_BINARY);
 
+    // 寻找ROI区域,保存ROI区域
+    this->find_ROI();
+
+    #ifdef DEBUG_RES
+
+    imshow("res", res_image);
+    waitKey(0);
+
+    #endif
+
+    // 再次旋转
+    ImgRectify(threshold_image, res_image);
+
+    // 再次寻找ROI
+    this->find_ROI();
+    
+    #ifdef DEBUG_RES
+
+    imshow("res", res_image);
+    waitKey(0);
+
+    #endif
 
 #ifdef DEBUG_RES
 
     imshow("res", this->res_image);
     waitKey(0);
 #endif
-
-    // 寻找ROI区域
-    this->find_ROI();
 
     // 准备获取ans
     vector<char> ans_;

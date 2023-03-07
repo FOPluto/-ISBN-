@@ -67,6 +67,9 @@ private:
 
     double average;              // 保存平均亮度
 
+    Range ROI_range;             // y字符兴趣框位置
+
+    Range ROI_range_x;           // x字符兴趣框位置
 private:
 
     // 旋转操作
@@ -95,8 +98,8 @@ private:
 
 public:
 
-    // 构造函数
-    detectSolution(string sample_path) { this->sampleImgPath = sample_path; }
+    // 构造函数,初始化两个参数
+    detectSolution(string sample_path) { this->sampleImgPath = sample_path; this->ROI_range.end = 0, this->ROI_range.start = 0;}
 
     // 获取结果
     string get_res();
