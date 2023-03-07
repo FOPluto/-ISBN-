@@ -219,8 +219,8 @@ Mat detectSolution::get_res_image(Mat& src_image, int type) {
     Mat dilate_image,erode_image;
     Mat element = getStructuringElement(MORPH_RECT, Size(3, 3));
 
-    dilate(gray_image, dilate_image, element);
-    erode(dilate_image, erode_image, element);
+    dilate(gray_image, erode_image, element);
+    erode(erode_image, erode_image, element);
 
 
     // 高斯滤波处理
@@ -251,7 +251,6 @@ Mat detectSolution::get_res_image(Mat& src_image, int type) {
     // 二值化调试
 #ifdef DEBUG_THRESHOLD
    imshow("threshold_image", threshold_image);
-   imshow("gray_image", gray_image);
    waitKey(0);
 #endif
 

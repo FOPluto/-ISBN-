@@ -13,8 +13,15 @@ pair<double, double> testSolution::test(string test_path)
         string testItem = testImgFN[i];
         detect_item->fit(testItem);
 
-        int idx = testItem.find("ISBN ", 0);
-        testItem = testItem.substr(idx + 5, testItem.length() - idx - 9);
+        int idx = testItem.find("ISBN", 0);
+        int num_space = 0;
+        while(testItem[idx] < '0' || testItem[idx] > '9') {
+            idx ++; num_space ++;
+        }
+        testItem = testItem.substr(idx, testItem.length() - idx - 4);
+        
+        cout << testItem << "  *  ";
+
         int idx_copy = idx;
 
         string ans = detect_item->get_res();
