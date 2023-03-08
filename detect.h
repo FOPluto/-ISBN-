@@ -28,8 +28,10 @@ using namespace cv;
 
 //#define DEBUG
 
-#define DEBUG_THRESHOLD          // 二值化调试
-#define DEBUG_RES                // 预处理调试
+// #define DEBUG_THRESHOLD          // 二值化调试
+// #define DEBUG_RES                // 预处理调试
+
+#define DEBUG_ITEM
 
 #endif
 
@@ -87,8 +89,11 @@ private:
     // 水浸操作
     void FloodFill(Mat& pic);
 
-    // 预处理函数, 返回值赋值给res_image
+    // 预处理函数, 返回值赋值给res_image，使用自适应阈值
     Mat get_res_image(Mat& src_image, int type);
+
+    // 预处理函数, 返回值赋值给res_image，使用大津法
+    Mat get_res_image2(Mat& src_image, int type);
 
     // resize_stand函数，将图片resize成为较小尺寸，减少计算量
     void resize_stand();
@@ -111,7 +116,7 @@ public:
     double getStrNum();
 
     // fit函数，用于整体识别的接口
-    int fit(string src_path);
+    int fit(string src_path, int model);
 
 };
 
