@@ -22,7 +22,7 @@ using namespace cv;
 
 // 宏定义：如果不注释就是打开对应DEBUG模式
 
-// #define DEBUG_ALL
+#define DEBUG_ALL
 
 #ifdef DEBUG_ALL
 
@@ -30,9 +30,12 @@ using namespace cv;
 
 // #define DEBUG_THRESHOLD          // 二值化调试
 // #define DEBUG_RES                // 预处理调试
-
-#define DEBUG_ITEM
-
+#define DEBUG_BLUR               // 中值滤波
+// #define DEBUG_ER_DE              // 膨胀腐蚀调试
+// #define DEBUG_FOOLD              // 漫水调试
+// #define DEBUG_ROI                // ROI框调试
+// #define DEBUG_ITEM               // 字符框调试
+// #define DEBUG_LINES              // 线调试
 #endif
 
 typedef pair<int, pair<int, int>> PIII;

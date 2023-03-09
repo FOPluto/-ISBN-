@@ -29,6 +29,8 @@ int SortMid(int val[])
             }
     return val[4];
 }
+
+
 void ImgDenoise(Mat& pic, Mat& ImgClear)//中值滤波去噪
 {
     int dx[] = { 0,-1,0,1,-1,1,-1,0,1 };
@@ -199,12 +201,36 @@ void detectSolution::ImgRectify(Mat& pic, Mat& BinaryFlat)//图像矫正
     //霍夫直线检测（第5个参数是阈值，阈值越大，检测精度越高）
     vector<Vec2f> Line;
     HoughLines(pic_edge, Line, 1, CV_PI / 180, 180, 0, 0);
+    // 画出直线
+
+#ifdef DEBUG_LINES
+    //依次画出每条线段
+    for (size_t i = 0; i < Line.size(); i++)
+    {
+        float rho = Line[i][0];
+        float theta = Line[i][1];
+        Point pt1, pt2;
+        //cout << theta << endl;
+        double a = cos(theta), b = sin(theta);
+        double x0 = a * rho, y0 = b * rho;
+        pt1.x = cvRound(x0 + 1000 * (-b));
+        pt1.y = cvRound(y0 + 1000 * (a));
+        pt2.x = cvRound(x0 - 1000 * (-b));
+        pt2.y = cvRound(y0 - 1000 * (a));
+        //只选角度最小的作为旋转角度
+        //sum += theta;
+
+        line(src_copy_image, pt1, pt2, Scalar(0, 255, 0), 1, LINE_AA); //Scalar函数用于调节线段颜色
+    }
+#endif
+
     //计算偏转角度
     double Angle = 0;
     int LineCnt = 0;
     for (int i = 0; i < Line.size(); i++)
     {
         if (Line[i][1] < 1.2 || Line[i][1]>1.8) continue;
+        
         Angle += Line[i][1];
         LineCnt++;
     }
@@ -225,23 +251,22 @@ Mat detectSolution::get_res_image2(Mat& src_image, int type){
     // 灰度化处理
     cvtColor(src_image, gray_image, COLOR_RGB2GRAY);
 
+    // 滤波用的核
     Mat dilate_image,erode_image;
     Mat element = getStructuringElement(MORPH_RECT, Size(5, 5));
 
+    // 膨胀腐蚀
     dilate(gray_image, erode_image, element);
     erode(erode_image, erode_image, element);
 
-
-    // 高斯滤波处理
+    // 自己实现的中值滤波
     Mat gaussian_image, bilateral_image;
-
     ImgDenoise(erode_image, gaussian_image);
-#ifdef DEBUG_BLUR
 
+#ifdef DEBUG_BLUR
    imshow("gaussian_image", gaussian_image);
    // imshow("bilateral_image", bilateral_image);
    waitKey(0);
-
 #endif
 
     // 获取平均亮度
@@ -331,7 +356,6 @@ void detectSolution::find_ROI() {
         points.push_back(Point(sum / 2, i));
         if (i) line(src_copy_image, points[max(0, i - 1)], points[i], Scalar(255, 0, 0), 2);
     }
-
     int idx = -1;
     for (int i = 0; i < rows_element.size() / 2; i++) {
         if (rows_element[i] >= 35) {
@@ -343,15 +367,12 @@ void detectSolution::find_ROI() {
             i = ++idx;
         }
     }
-    
     int _begin = ans[max(0, (int)ans.size() - 2)].second.first, _end = ans[max(0, (int)ans.size() - 2)].second.second;
-
     // 如果没有提取到导致开始小于结尾，或者太大，直接返回
     if (_begin >= _end || _begin > 114514) return;
 
     // 保存兴趣框位置
     this->ROI_range = Range(_begin, _end);
-
 
     // 提取兴趣框
     this->ROI_image = res_image(Range(_begin, _end), Range::all());
@@ -377,7 +398,6 @@ void detectSolution::find_ROI() {
             num_position.push_back(item);
         }
     }
-
     // 保存x方向的边
     this->ROI_range_x.start = num_position[0].first;
     this->ROI_range_x.end = num_position[num_position.size() - 1].second;
@@ -426,6 +446,19 @@ int detectSolution::fit(string src_path, int model) {
     // 再次寻找ROI
     this->find_ROI();
 
+#ifdef DEBUG_ROI
+
+    imshow("ROI_image", ROI_image);
+    waitKey(0);
+
+#endif
+
+#ifdef DEBUG_LINES
+
+    imshow("lines_image", this->src_copy_image);
+    waitKey(0);
+
+#endif
 
 #ifdef DEBUG_RES
 
@@ -471,6 +504,7 @@ int detectSolution::fit(string src_path, int model) {
         item_image = item_image(Range(head, end), Range::all());
 
         #ifdef DEBUG_ITEM
+        imwrite("wobuhaoshuo/" + to_string(i) + ".jpg", item_image);
         imshow("item_image", item_image);
         waitKey(0);
         #endif
