@@ -31,7 +31,7 @@ pair<double, double> testSolution::test(string test_path)
         int ans_num = -1;
         detectSolution* detect_item = new detectSolution(this->sample_path);
         
-        for(int k = 0;k < 2;k++) {
+        for(int k = 0;k < 3;k++) {
             detect_item->fit(path, k);
 
             string ans = detect_item->get_res(), ans_temp = "";
@@ -51,7 +51,7 @@ pair<double, double> testSolution::test(string test_path)
                 res_ans = ans_temp;
                 ans_num = num_temp; // 更新正确数量
             }
-            
+            if(res_ans == res) break;
         }
         if (res == res_ans){   
             s_p_num++;

@@ -22,20 +22,21 @@ using namespace cv;
 
 // 宏定义：如果不注释就是打开对应DEBUG模式
 
+// 总开关
 // #define DEBUG_ALL
 
 #ifdef DEBUG_ALL
 
 //#define DEBUG
 
-// #define DEBUG_THRESHOLD          // 二值化调试
-// #define DEBUG_RES                // 预处理调试
-// #define DEBUG_BLUR               // 中值滤波
-// #define DEBUG_ER_DE              // 膨胀腐蚀调试
-// #define DEBUG_FOOLD              // 漫水调试
-// #define DEBUG_ROI                // ROI框调试
+#define DEBUG_THRESHOLD          // 二值化调试
+#define DEBUG_RES                // 预处理调试
+#define DEBUG_BLUR               // 中值滤波
+#define DEBUG_ER_DE              // 膨胀腐蚀调试
+#define DEBUG_FOOLD              // 漫水调试
+#define DEBUG_ROI                // ROI框调试
 #define DEBUG_ITEM               // 字符框调试
-// #define DEBUG_LINES              // 线调试
+#define DEBUG_LINES              // 线调试
 #endif
 
 typedef pair<int, pair<int, int>> PIII;
@@ -97,6 +98,9 @@ private:
 
     // 预处理函数, 返回值赋值给res_image，使用大津法
     Mat get_res_image2(Mat& src_image, int type);
+
+    // 预处理函数, 返回值赋值给res_image，使用大津法
+    Mat get_res_image3(Mat& src_image, int type);
 
     // resize_stand函数，将图片resize成为较小尺寸，减少计算量
     void resize_stand();

@@ -78,7 +78,8 @@ char detectSolution::CheckImg(Mat inputImg, int idx)
 {
     // cout << "size: " << inputImg.rows * inputImg.cols << endl;
     // 如果图片过小，就直接返回空格
-    if(inputImg.rows * inputImg.cols <= 600) return ' ';
+    int S = inputImg.rows * inputImg.cols;
+    if(S <= 630 && (double)inputImg.rows / inputImg.cols < 1) return ' ';
     //读取模板图片
     vector<String> sampleImgFN;
     glob(sampleImgPath, sampleImgFN, false);
@@ -108,12 +109,12 @@ char detectSolution::CheckImg(Mat inputImg, int idx)
         if (idx > 5) 
         {   // 数字，就不用判断字母了
             // 找到最靠前的数字
-            while (nums[ans_idx].first / 3 >= 10 && nums[ans_idx].first != 14) ans_idx++;
+            while (nums[ans_idx].first / 3 >= 10 || nums[ans_idx].first == 14) ans_idx++;
         }
-        else if (idx < 3) 
+        else if (idx < 2) 
         {   // 字母
             // 找到最靠前的字母
-            while (nums[ans_idx].first / 3 <= 9 || nums[ans_idx].first == 14) ans_idx++;
+            while (nums[ans_idx].first / 3 <= 9 && nums[ans_idx].first != 14) ans_idx++;
         }
     }
 
@@ -163,7 +164,7 @@ void detectSolution::FloodFill(Mat& pic)//水漫操作
         for (int j = 0; j < 1 || (ROI_range_x.start < ROI_range_x.end && j < ROI_range_x.start); j++)
             if (pic.at<uchar>(i, j) != 0) q.push({ i,j });
     for (int i = 0; i < pic.rows; i++)//右
-        for (int j = pic.cols - 1; j >= pic.cols - 1 || (ROI_range_x.start < ROI_range_x.end && j > ROI_range_x.end); j--)
+        for (int j = pic.cols - 1; j >= pic.cols - 1; j--)
             if (pic.at<uchar>(i, j) != 0) q.push({ i,j });
     while (!q.empty()) 
     {
@@ -238,9 +239,6 @@ void detectSolution::ImgRectify(Mat& pic, Mat& BinaryFlat)//图像矫正
         double x0 = a * rho, y0 = b * rho;
         double y1 = cvRound(y0 + 1000 * (a));
         double y2 = cvRound(y0 - 1000 * (a));
-        // if(y1 >= this->res_image.rows * 0.35 && y2 >= this->res_image.rows * 0.35 &&
-        //     y1 <= this->res_image.rows * 0.84 && y2 >= this->res_image.rows * 0.84) continue;
-        // if(y1 >= this->res_image.rows * 0.48 && y2 >= this->res_image.rows * 0.48) continue;
         if (Line[i][1] < 1.2 || Line[i][1]>1.8) continue;
         
         Angle += Line[i][1];
@@ -255,6 +253,59 @@ void detectSolution::ImgRectify(Mat& pic, Mat& BinaryFlat)//图像矫正
     warpAffine(this->src_copy_image, this->src_copy_image, pic_tmp, src_size);
     FloodFill(BinaryFlat);
 }
+
+
+
+
+// 预处理模式三
+Mat detectSolution::get_res_image3(Mat& src_image, int type){
+    
+    cv::copyMakeBorder(src_image, src_image, 15, 5, 5, 0, BORDER_CONSTANT, Scalar(179, 164, 161)); //161,164,179
+    // 复制Mat
+    this->src_image.copyTo(src_copy_image);
+
+    // 灰度化处理
+    cvtColor(src_image, gray_image, COLOR_RGB2GRAY);
+
+    // 滤波用的核
+    Mat dilate_image,erode_image;
+    Mat element = getStructuringElement(MORPH_RECT, Size(5, 5));
+
+    // 膨胀腐蚀
+    dilate(gray_image, erode_image, element);
+    erode(erode_image, erode_image, element);
+
+    // 自己实现的中值滤波
+    Mat gaussian_image, bilateral_image;
+    ImgDenoise(erode_image, gaussian_image);
+
+#ifdef DEBUG_BLUR
+   imshow("gaussian_image", gaussian_image);
+   // imshow("bilateral_image", bilateral_image);
+   waitKey(0);
+#endif
+
+    // 获取平均亮度
+    this->get_average_light(gaussian_image);
+
+    // 使用大津法进行二值化处理
+    threshold(gaussian_image, threshold_image, 0, 255, type | THRESH_OTSU);
+
+    // 二值化调试
+
+#ifdef DEBUG_THRESHOLD
+   imshow("threshold_image", threshold_image);
+   waitKey(0);
+#endif
+
+    Mat res_image;
+    ImgRectify(threshold_image, res_image);
+
+    return res_image;
+}
+
+
+
 
 Mat detectSolution::get_res_image2(Mat& src_image, int type){
     // 复制Mat
@@ -298,6 +349,10 @@ Mat detectSolution::get_res_image2(Mat& src_image, int type){
 
     return res_image;
 }
+
+
+
+
 
 
 // 图像预处理操作
@@ -454,6 +509,10 @@ void detectSolution::find_ROI() {
 int detectSolution::fit(string src_path, int model) {
     // 输入图像
     this->src_image = imread(src_path);
+
+    // 加入白边
+    // cv::copyMakeBorder(src_image, src_image, 10, 0, 0, 0, BORDER_CONSTANT, Scalar(0, 0, 0)); // 158,159,178
+
     if (!this->src_image.data) {
         cout << "src_image_empty!" << endl;
         return ERROR;
@@ -461,6 +520,9 @@ int detectSolution::fit(string src_path, int model) {
 
     // 图像标准化，并进行预处理
     this->resize_stand();
+
+
+
     // 模式选择
     if(model == 0){ // 自适应
         this->res_image = this->get_res_image(this->src_image, THRESH_BINARY_INV);
@@ -468,13 +530,20 @@ int detectSolution::fit(string src_path, int model) {
         double _sum = CalcImg(this->res_image);
         // 如果平均像素值过小，那么换一个参数重新进行预处理
         if (_sum <= 14) this->res_image = get_res_image(this->src_image, THRESH_BINARY);
-    } else { // 大津法
+    } else if(model == 1) { // 大津法
         this->res_image = this->get_res_image2(this->src_image, THRESH_BINARY_INV);
         // 计算图像的平均像素值
         double _sum = CalcImg(this->res_image);
         // 如果平均像素值过小，那么换一个参数重新进行预处理
         if (_sum <= 14) this->res_image = get_res_image2(this->src_image, THRESH_BINARY);
+    } else {
+        this->res_image = this->get_res_image3(this->src_image, THRESH_BINARY_INV);
+        // 计算图像的平均像素值
+        double _sum = CalcImg(this->res_image);
+        // 如果平均像素值过小，那么换一个参数重新进行预处理
+        if (_sum <= 14) this->res_image = get_res_image3(this->src_image, THRESH_BINARY);
     }
+
 
     // 寻找ROI区域,保存ROI区域
     this->find_ROI();
@@ -565,6 +634,9 @@ int detectSolution::fit(string src_path, int model) {
         }
         else if ((ans_[i] == 'N' || ans_[i + 1] == '9') && i >= 2) 
         {
+            flag = true;
+        } else if((ans_[i - 1] == 'N' && ans_[i] == '9') && i < 2){
+            res_str += ans_[i];
             flag = true;
         }
     }
