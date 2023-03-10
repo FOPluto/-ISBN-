@@ -9,7 +9,7 @@ pair<double, double> testSolution::test(string test_path)
     int s_num = 0, s_p_num = 0;  //字符串
     for (int i = 0; i < testImgFN.size(); i++) 
     {
-        string testItem = testImgFN[i];
+        string testItem = testImgFN[i]; // 取出来每个路径字符串
         int idx = testItem.find("ISBN", 0);
         int num_space = 0;
         while(testItem[idx] < '0' || testItem[idx] > '9') {
