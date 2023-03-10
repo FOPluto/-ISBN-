@@ -108,12 +108,12 @@ char detectSolution::CheckImg(Mat inputImg, int idx)
         if (idx > 5) 
         {   // 数字，就不用判断字母了
             // 找到最靠前的数字
-            while (nums[ans_idx].first / 3 >= 10) ans_idx++;
+            while (nums[ans_idx].first / 3 >= 10 && nums[ans_idx].first != 14) ans_idx++;
         }
         else if (idx < 3) 
         {   // 字母
             // 找到最靠前的字母
-            while (nums[ans_idx].first / 3 <= 9) ans_idx++;
+            while (nums[ans_idx].first / 3 <= 9 || nums[ans_idx].first == 14) ans_idx++;
         }
     }
 
@@ -357,12 +357,14 @@ void detectSolution::find_ROI() {
         if (i) line(src_copy_image, points[max(0, i - 1)], points[i], Scalar(255, 0, 0), 2);
     }
     int idx = -1;
+
+
     for (int i = 0; i < rows_element.size() / 2; i++) {
-        if (rows_element[i] >= 35) {
+        if (rows_element[i] >= 45) {
             PIII item = { ++idx, {i, 0} };
             ans.push_back(item);
             int idx = i;
-            while (rows_element[idx] >= 35) idx++;
+            while (rows_element[idx] >= 45) idx++;
             ans[item.first].second.second = idx;
             i = ++idx;
         }

@@ -22,7 +22,7 @@ pair<double, double> testSolution::test(string test_path)
         string res = "";
         // 只取数字
         for(int j = 0;j < testItem.size();j++){
-            if(testItem[j] <= '9' && testItem[j] >= '0'){
+            if(testItem[j] <= '9' && testItem[j] >= '0' || testItem[j] == 'X'){
                 res += testItem[j];
             }
         }
@@ -38,7 +38,7 @@ pair<double, double> testSolution::test(string test_path)
             // 我们得到的结果
             // 只取数字
             for(int j = 0;j < ans.length();j++){
-                if(ans[j] <= '9' && ans[j] >= '0'){
+                if((ans[j] <= '9' && ans[j] >= '0') || ans[j] == 'X'){
                     ans_temp += ans[j];
                 }
             }

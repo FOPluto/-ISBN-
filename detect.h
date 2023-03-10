@@ -33,9 +33,9 @@ using namespace cv;
 // #define DEBUG_BLUR               // 中值滤波
 // #define DEBUG_ER_DE              // 膨胀腐蚀调试
 // #define DEBUG_FOOLD              // 漫水调试
-// #define DEBUG_ROI                // ROI框调试
+#define DEBUG_ROI                // ROI框调试
 // #define DEBUG_ITEM               // 字符框调试
-// #define DEBUG_LINES              // 线调试
+#define DEBUG_LINES              // 线调试
 #endif
 
 typedef pair<int, pair<int, int>> PIII;
