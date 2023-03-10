@@ -1,7 +1,7 @@
 #include "testSolution.h"
 
 int main() {
-    string test_path = "/home/fo_pluto/opencv_home/wobuhaoshuo/*";
+    string test_path = "/home/fo_pluto/opencv_home/2023_test/*";
 
     string sample_path = "/home/fo_pluto/opencv_home/datasets/*";
 

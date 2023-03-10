@@ -217,6 +217,7 @@ void detectSolution::ImgRectify(Mat& pic, Mat& BinaryFlat)//图像矫正
         pt1.y = cvRound(y0 + 1000 * (a));
         pt2.x = cvRound(x0 - 1000 * (-b));
         pt2.y = cvRound(y0 - 1000 * (a));
+        if((pt1.y >= this->res_image.rows * 0.50 && pt2.y >= this->res_image.rows * 0.50)) continue;
         //只选角度最小的作为旋转角度
         //sum += theta;
 
@@ -229,6 +230,17 @@ void detectSolution::ImgRectify(Mat& pic, Mat& BinaryFlat)//图像矫正
     int LineCnt = 0;
     for (int i = 0; i < Line.size(); i++)
     {
+        float rho = Line[i][0];
+        float theta = Line[i][1];
+        Point pt1, pt2;
+        //cout << theta << endl;
+        double a = cos(theta), b = sin(theta);
+        double x0 = a * rho, y0 = b * rho;
+        double y1 = cvRound(y0 + 1000 * (a));
+        double y2 = cvRound(y0 - 1000 * (a));
+        // if(y1 >= this->res_image.rows * 0.35 && y2 >= this->res_image.rows * 0.35 &&
+        //     y1 <= this->res_image.rows * 0.84 && y2 >= this->res_image.rows * 0.84) continue;
+        // if(y1 >= this->res_image.rows * 0.48 && y2 >= this->res_image.rows * 0.48) continue;
         if (Line[i][1] < 1.2 || Line[i][1]>1.8) continue;
         
         Angle += Line[i][1];
@@ -356,21 +368,46 @@ void detectSolution::find_ROI() {
         points.push_back(Point(sum / 2, i));
         if (i) line(src_copy_image, points[max(0, i - 1)], points[i], Scalar(255, 0, 0), 2);
     }
+
     int idx = -1;
-
-
     for (int i = 0; i < rows_element.size() / 2; i++) {
-        if (rows_element[i] >= 45) {
+        if (rows_element[i] >= 35) {
             PIII item = { ++idx, {i, 0} };
             ans.push_back(item);
             int idx = i;
-            while (rows_element[idx] >= 45) idx++;
+            while (rows_element[idx] >= 35){ 
+                idx ++;
+            }
             ans[item.first].second.second = idx;
             i = ++idx;
         }
     }
     int _begin = ans[max(0, (int)ans.size() - 2)].second.first, _end = ans[max(0, (int)ans.size() - 2)].second.second;
     // 如果没有提取到导致开始小于结尾，或者太大，直接返回
+
+    priority_queue<double> heap; // 最大堆
+    if(_end - _begin >= 400 || _end - _begin <= 40){
+        ans.clear();
+        idx = -1;
+        for (int i = 0; i < rows_element.size() / 2; i++) {
+            if (rows_element[i] >= 35 && (!heap.size() || heap.top() - rows_element[i] <= 300)) {
+                heap.push(rows_element[i]);
+                PIII item = { ++idx, {i, 0} };
+                ans.push_back(item);
+                int idx = i;
+                while (rows_element[idx] >= 35 && heap.top() - rows_element[idx] <= 300){ 
+                    heap.push(rows_element[idx ++]);
+                }
+                ans[item.first].second.second = idx;
+                i = ++idx;
+            } else {
+                while(heap.size()) heap.pop();
+            }
+        }
+        _begin = ans[max(0, (int)ans.size() - 2)].second.first, _end = ans[max(0, (int)ans.size() - 2)].second.second;
+    }
+
+
     if (_begin >= _end || _begin > 114514) return;
 
     // 保存兴趣框位置
@@ -506,7 +543,7 @@ int detectSolution::fit(string src_path, int model) {
         item_image = item_image(Range(head, end), Range::all());
 
         #ifdef DEBUG_ITEM
-        imwrite("wobuhaoshuo/" + to_string(i) + ".jpg", item_image);
+        imwrite("demo_wobuhaoshuo/" + to_string(i) + ".jpg", item_image);
         imshow("item_image", item_image);
         waitKey(0);
         #endif
